@@ -25,13 +25,18 @@ These are deliberately deferred, not forgotten. Nothing here gets built until th
       deliberate, separate, low-risk PR — not a drive-by edit.
 - [ ] Decide whether `library/` stays inside the published Pages path.
 
-## Banked — built, not merged
+## Out of scope — will not merge
 
-- **`showcase-specimen-drawer` branch** (commit 70b302e). The client showcase: three specimen
-  plates (Fort Knox, Oud-Kempen, Toy Safari), gate-clean at three viewports, slop-detector
-  zero. Superseded 2026-07-28 by the redirect to a capability demonstration (instruction quoted in DRIFT.md) —
-  **held, not deleted**. It becomes mergeable the day clients sign off on being shown, and the
-  plate grammar is reusable as-is.
+- **`showcase-specimen-drawer` branch** (commit 70b302e). Three client specimen plates
+  (Fort Knox, Oud-Kempen, Toy Safari), gate-clean at three viewports, slop-detector zero.
+  **Out of scope permanently under the 2026-07-29 capability-only ruling — not pending consent.**
+  It will not merge, and no head should re-open the question; that takes a new Schyler ruling.
+
+  Kept rather than deleted for one reason: the *mounted-plate component grammar* (paper mount,
+  hairline mat, hallmark chip row, verifiable-claim footer) is reusable on any surface that
+  needs to present an artefact — it just may never present a client's. If the gate would rather
+  not have a permanently-unmergeable branch in the repo, say so and I'll delete it; the grammar
+  is also described in DESIGN.md terms and could be re-derived from the commit if needed.
 
 ## Done
 

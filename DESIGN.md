@@ -4,11 +4,15 @@ _The durable visual system for this repo. The studio's `kit/DESIGN-STANDARD.md` 
 this file records what THIS surface committed to, so the next head extends it instead of
 re-inventing it. Established 2026-07-28 with the one-page build._
 
-**Provenance.** The form this system dresses (3D oak, one page, travelling acorn, cursor
-flourishes, "rich fonts") came from a direct instruction to the site head, quoted verbatim in
-[DRIFT.md](DRIFT.md); attribution of that instruction sits with the console lead. Everything
-below it — the render register, the palette application, the type pairing, the editorial split,
-the six rules — are the site head's proposals. Challenge them as such.
+**Scope.** Capability only: this site never names clients, shows client logos or screenshots,
+or links client work. The page demonstrates; it does not cite. Schyler ruling 2026-07-29 via the
+console lead — see BRIEF.md job 1 and the founding entry in [DRIFT.md](DRIFT.md). Client work
+returns only on a new ruling, never on a head's judgement.
+
+**Authorship.** Everything below is the site head's proposal and the site head's to answer for:
+the 3D oak and the canopy-to-roots descent, the travelling acorn, the render register, the
+palette application, the type pairing, the editorial split, and the six rules. Challenge any of
+it as mine.
 
 ## The world
 
@@ -88,6 +92,6 @@ change pushes past 300 kB, the answer is a smaller engine, not a bigger budget.
 
 ## What this surface deliberately refuses
 
-Client thumbnails as the structure (the work is banked on `showcase-specimen-drawer` until clients
-sign off on being shown), capability card-decks, tracked uppercase eyebrows over every section,
-gradient text, and any claim the visitor cannot check from the page itself.
+Client thumbnails, logos, screenshots and named case studies of any kind — out of scope under the
+2026-07-29 ruling, not a matter of taste. Also: capability card-decks, tracked uppercase eyebrows
+over every section, gradient text, and any claim the visitor cannot check from the page itself.

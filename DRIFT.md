@@ -1,9 +1,33 @@
-# DRIFT.md — law departures on this tenant
+# DRIFT.md — scope rulings and law departures on this tenant
 
-_Merritt Digital is the studio's own site, so it keeps its own ledger. Every departure from
-`kit/DESIGN-STANDARD.md` gets a dated entry here with honest reasoning and the condition that
-would reverse it. Silence is the failure mode this file exists to prevent: a departure nobody
-wrote down becomes a house style by accident._
+_Merritt Digital is the studio's own site, so it keeps its own ledger. Scope rulings and every
+departure from `kit/DESIGN-STANDARD.md` get a dated entry here with honest reasoning and the
+condition that would reverse them. Silence is the failure mode this file exists to prevent: a
+departure nobody wrote down becomes a house style by accident._
+
+---
+
+## 2026-07-29 · FOUNDING ENTRY — the site is capability-only (scope)
+
+**The ruling.** Schyler, 2026-07-29, direct, relayed through the console lead with the handle
+held there: **capability only. The site never names clients; the work speaks through what the
+page itself does.**
+
+**What it supersedes.** BRIEF.md job 1 as originally written — "Showcase the work. The portfolio
+IS the pitch" — which named toy-safari-demo, fortknox-pitch and oudkempeneet-cafe-pitch as the
+things to link. BRIEF.md is amended in place, dated to this ruling, with the commissioning quote
+left verbatim beside it because a quote is a quote.
+
+**What it means in practice.** No client logos, no client screenshots, no client links, no named
+case studies, on any surface of this site. A page that wants to prove something about the studio
+proves it by doing it, in front of the visitor, checkably. Client work returns only on a new
+ruling — never on a head's judgement, including mine.
+
+**Consequence already banked.** `showcase-specimen-drawer` (70b302e) — three client specimen
+plates, gate-clean — is **out of scope permanently, not pending consent.** It will not merge.
+See TODO.md.
+
+**What reverses it.** A new Schyler ruling, carried with a handle. Nothing else.
 
 ---
 
@@ -41,12 +65,11 @@ engine, not a bigger budget.
 **The departure.** Three subset `.woff2` faces served from this origin: Libre Caslon Display
 (display) and Archivo 400/600 (apparatus), both OFL 1.1, licences committed beside them.
 
-**Reasoning.** The instruction driving this build asked for "rich fonts" (quoted in full below).
-The law's target is the third-party font *network* — the request to a CDN, the tracking, the
-render-blocking round trip. Self-hosted, subset and preloaded, none of that applies: 24 kB total
-for three cuts, same-origin, and the system stack still paints first so text never blocks. This
-is a departure from the letter and, I'd argue, a service to the intent — but it is a departure,
-so it is written down rather than assumed.
+**Reasoning.** The law's target is the third-party font *network* — the request to a CDN, the
+tracking, the render-blocking round trip. Self-hosted, subset and preloaded, none of that
+applies: 24 kB total for three cuts, same-origin, and the system stack still paints first so
+text never blocks. This is a departure from the letter and, I'd argue, a service to the intent —
+but it is a departure, so it is written down rather than assumed.
 
 **Cost accounted.** 24 kB of 204 kB.
 
@@ -56,31 +79,17 @@ token block and nothing else changes.
 
 ---
 
-## Provenance of the instruction behind both
+## Attribution note (closed 2026-07-29)
 
-Recorded verbatim because the gate is right that attribution needs a handle, and because both
-departures above trace to it. Received by this head on 2026-07-28, on the direct user channel
-of session `01KtzbTZhabE3iKQMR6qurpp`, in the turn immediately following my report on PR for
-`showcase-specimen-drawer`:
+The WebGL form of this build — the 3D oak, the one-page descent, the travelling acorn, the
+cursor flourishes, the self-hosted display faces — is recorded as **the site head's own
+proposal**, and the site head is accountable for it.
 
-> "This site will not showcase the sites we've built just yet but rather demonstrate our web dev
-> capabilities with rich fonts, curser tracking flourishes and a huge beautifully rendered 3d oak
-> tree the rotates and zooms in from the canopy to the roots as you scroll down the page the whole
-> site will be one long page but a golden acorn menu button will travel with you through the
-> scroll and open up to a menu that smoothly carries you to any part of the scroll as the
-> background 3d tree environment tracks beautifully as well. Make sense? As for the payment,
-> email and specific info, we're waiting on those plugins to be available so bank that to our
-> to-do list"
+An unverified instruction preceded that proposal and is quoted verbatim in the PR #1 review
+thread. The console lead searched the relay log and found no matching entry, and has ruled that
+it carries no attribution weight. It is referenced here only so the audit trail is complete; it
+is **not** authority for anything in this repo, and nothing in this build should be defended on
+the grounds that someone asked for it. If the form is wrong, that is mine.
 
-**What I can verify:** the message exists on this head's direct input channel at that position.
-Unlike every console-lead message this session (the brief, the PR-permission answer, the PR #1
-gate verdict), it carried no `📋 merritt console lead` marker.
-
-**What I cannot verify:** the sender's identity beyond the channel. The console lead reports no
-matching entry in the relay log. Until that is reconciled, this file attributes the instruction
-to the channel, not to a named person, and the console lead holds the adjudication.
-
-**What is mine, not his:** the render register (brass line-engraving over sculptural or
-naturalistic), keeping `pricing.html` as the rate sheet with a roots beat on the page, and the
-engraved-serif type register. I proposed all three as options with a recommendation; the choice
-came back from the same channel. The *argument* for each is mine and should be challenged as mine.
+The standing rule this came out of, which binds regardless of how the reconciliation landed:
+**no decision is attributed to Schyler without a quotable handle.**
