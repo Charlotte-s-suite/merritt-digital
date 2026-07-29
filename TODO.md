@@ -2,7 +2,7 @@
 
 _The site head's running list. Newest direction at the top; blocked items keep their reason._
 
-## Blocked — waiting on plugins (Schyler, 2026-07-28)
+## Blocked — waiting on plugins (direct instruction, 2026-07-28; see DRIFT.md)
 
 These are deliberately deferred, not forgotten. Nothing here gets built until the plugins land.
 
@@ -17,8 +17,9 @@ These are deliberately deferred, not forgotten. Nothing here gets built until th
 
 ## Open
 
-- [ ] Replace `schylermcnally@gmail.com` with a studio address on every public surface.
-      Personal Gmail is the wrong signal on a site quoting $6–12k.
+- [ ] **Parked by the gate (PR #1):** replace `schylermcnally@gmail.com` with a studio address.
+      Personal Gmail is the wrong signal on a site quoting $6–12k, but the contact address
+      resolves with the domain decision, not in a page PR.
 - [ ] Carry the self-hosted display faces onto `pricing.html` so both pages share one voice.
       `pricing.html` is currently on the system Iowan stack; it is gate-clean, so this is a
       deliberate, separate, low-risk PR — not a drive-by edit.
@@ -28,7 +29,7 @@ These are deliberately deferred, not forgotten. Nothing here gets built until th
 
 - **`showcase-specimen-drawer` branch** (commit 70b302e). The client showcase: three specimen
   plates (Fort Knox, Oud-Kempen, Toy Safari), gate-clean at three viewports, slop-detector
-  zero. Superseded 2026-07-28 when Schyler redirected the site to a capability demonstration —
+  zero. Superseded 2026-07-28 by the redirect to a capability demonstration (instruction quoted in DRIFT.md) —
   **held, not deleted**. It becomes mergeable the day clients sign off on being shown, and the
   plate grammar is reusable as-is.
 

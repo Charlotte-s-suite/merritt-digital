@@ -7,14 +7,17 @@
   and measures itself out loud while it does.
   OWN-WORLD: The engraved assay plate in three dimensions. Brass on ink (#B08D4A/#E3C57E on
   #1A1C20), Libre Caslon Display cut for the things of value, Archivo for apparatus, and one
-  oak drawn entirely in line — no surfaces, no shading, depth from line density alone.
+  oak drawn entirely in line: no surfaces, no shading, depth from line density alone.
   STORY: A visitor arrives inside the canopy, descends the tree as they read, finds the page
   auditing itself on the way down, and lands at the roots where the numbers and the ask are.
   FIRST VIEWPORT: The canopy fills the frame; nameplate centred in Caslon at ~104px with the
-  studio line beneath; one sentence of thesis; a rule and a scroll cue. The acorn — the
-  primary navigation — is already at the lower right, filling as you descend.
-  FORM: Scroll-driven WebGL line engraving. Brief-pinned by Schyler (2026-07-28), so no
-  concept roll was run; the world is the studio's own ratified grammar taken into space.
+  studio line beneath; one sentence of thesis; a rule and a scroll cue. The acorn, which is the
+  primary navigation, is already at the lower right, filling as you descend.
+  FORM: Scroll-driven WebGL line engraving. The form (3D oak, one page, travelling acorn,
+  cursor flourishes) came from a direct instruction to this head, 2026-07-28 — quoted verbatim
+  in DRIFT.md, attribution with the console lead — so no concept roll was run. The render
+  register, the type register and keeping pricing.html as the rate sheet are MY proposals,
+  chosen from options; argue with them as mine.
 
   LAWS: single dependency-free page + vendored-local three.js (law 3 amendment, Signature
   tier) · WebGL layers over a complete static page and never gates it (§5.5) · all motion
@@ -32,9 +35,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Merritt Digital — a design studio in Alameda, California</title>
+<title>Merritt Digital: a design studio in Alameda, California</title>
 <meta name="description" content="Merritt Digital builds business websites that behave like objects. This page is the portfolio: a hand-built oak engraving in real 3D, measuring its own weight and frame rate as you scroll it.">
-<meta property="og:title" content="Merritt Digital — this page is the portfolio">
+<meta property="og:title" content="Merritt Digital: this page is the portfolio">
 <meta property="og:description" content="An oak drawn entirely in line, turned by your scroll, on a page that audits itself out loud.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#1A1C20">
@@ -124,7 +127,8 @@
   .rates{margin-top:clamp(34px,6vh,60px)}
   .rate{display:flex;justify-content:space-between;align-items:baseline;gap:20px;padding:20px 0;border-bottom:1px solid var(--rule)}
   .rate:first-child{border-top:1px solid var(--rule)}
-  .rate .what{font-size:15px;color:var(--on-field)}
+  .rate .what{font-size:15px;color:var(--on-field-dim)}
+  .rate .what b{font-weight:400;color:var(--paper);margin-right:.5em}
   .rate .n{font-family:var(--display);font-size:clamp(23px,3vw,34px);color:var(--paper);white-space:nowrap;font-variant-numeric:tabular-nums}
   .terms{margin-top:26px;font-size:15px;color:var(--on-field-dim);max-width:64ch}
   .actions{display:flex;gap:16px;flex-wrap:wrap;margin-top:clamp(34px,5vh,52px)}
@@ -269,7 +273,7 @@
         <div class="row rise">
           <dt>Weight</dt>
           <dd class="val"><b id="m-kb">&mdash;</b> kB</dd>
-          <dd class="note">Everything it took to give you this: markup, styles, three faces, the 3D engine and the tree itself. No tracker, no tag manager, no cookie banner, no font CDN &mdash; none of the weight that usually arrives before the content does.</dd>
+          <dd class="note">Everything it took to give you this: markup, styles, three faces, the 3D engine and the tree itself. No tracker, no tag manager, no cookie banner, no font CDN. None of the weight that usually arrives before the content does.</dd>
         </div>
         <div class="row rise">
           <dt>Floor</dt>
@@ -280,7 +284,7 @@
 
       <p class="measured" id="measured">
         <span class="dot"></span>
-        <span id="measured-text">Figures from our reference run &mdash; they measure themselves live once scripting is on.</span>
+        <span id="measured-text">Figures from our reference run; they measure themselves live once scripting is on.</span>
       </p>
     </div>
   </section>
@@ -325,11 +329,11 @@
       <p class="dek rise">A studio that hides its rates is telling you the number depends on how you look. Here is the whole structure, in public, before you ever write to us.</p>
 
       <div class="rates">
-        <div class="rate rise"><span class="what">The Demo &mdash; a working site at a live address</span><span class="n">$0</span></div>
-        <div class="rate rise"><span class="what">Launch &mdash; your demo, made production-real</span><span class="n">$2,500</span></div>
-        <div class="rate rise"><span class="what">Signature &mdash; your brand as an experience</span><span class="n">$6,000&ndash;$12,000</span></div>
-        <div class="rate rise"><span class="what">Care &mdash; hosting, security, the site kept current</span><span class="n">from $149/mo</span></div>
-        <div class="rate rise"><span class="what">Nothing down &mdash; Launch and Care bundled</span><span class="n">$249/mo</span></div>
+        <div class="rate rise"><span class="what"><b>The Demo</b> a working site at a live address</span><span class="n">$0</span></div>
+        <div class="rate rise"><span class="what"><b>Launch</b> your demo, made production-real</span><span class="n">$2,500</span></div>
+        <div class="rate rise"><span class="what"><b>Signature</b> your brand as an experience</span><span class="n">$6,000&ndash;$12,000</span></div>
+        <div class="rate rise"><span class="what"><b>Care</b> hosting, security, the site kept current</span><span class="n">from $149/mo</span></div>
+        <div class="rate rise"><span class="what"><b>Nothing down</b> Launch and Care bundled</span><span class="n">$249/mo</span></div>
       </div>
       <p class="terms">We never discount the build; when it helps to meet you partway we comp months of Care instead. Ranges are scoped in writing before work starts and land on one fixed, itemised number. Ratified 2026-07-06.</p>
 
@@ -514,7 +518,7 @@ var LEDGER = (function(){
     LEDGER.weight();
     var refused = probe();
     if (refused){
-      LEDGER.say('Measured on this load. The 3D figures are from our reference run — ' + refused + '.', false);
+      LEDGER.say('Measured on this load. The 3D figures are from our reference run: ' + refused + '.', false);
       return;
     }
     import('./assets/oak.js').then(function(mod){

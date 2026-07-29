@@ -4,6 +4,12 @@ _The durable visual system for this repo. The studio's `kit/DESIGN-STANDARD.md` 
 this file records what THIS surface committed to, so the next head extends it instead of
 re-inventing it. Established 2026-07-28 with the one-page build._
 
+**Provenance.** The form this system dresses (3D oak, one page, travelling acorn, cursor
+flourishes, "rich fonts") came from a direct instruction to the site head, quoted verbatim in
+[DRIFT.md](DRIFT.md); attribution of that instruction sits with the console lead. Everything
+below it — the render register, the palette application, the type pairing, the editorial split,
+the six rules — are the site head's proposals. Challenge them as such.
+
 ## The world
 
 **The site IS the engraved assay plate, taken into three dimensions.** The studio's object is the
