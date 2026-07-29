@@ -1,23 +1,501 @@
 <!DOCTYPE html>
+<!-- Merritt Digital — the studio's own site. Design language (law 6, own-brand):
+     THE SITE IS THE SPECIMEN SHEET — the proof sheet the studio files for every job
+     (merritt-studio/specimens/*: three-viewport captures + sheet.json + provenance).
+     Grammar: paper plate on ink field · hallmark block of verifiable claims · letterspaced
+     serif nameplate · engraved rule as the drawer divider · provenance foot.
+     Every number on this page comes from merritt-studio/pricing.json (ratified 2026-07-06).
+     Laws honored: single file, zero external deps, system fonts, three-viewport, 44px targets,
+     one LIVE element (fail-soft), signed provenance. -->
+<!-- impeccable-disable cream-palette: #FAF7F0 is the studio's ratified paper token (press/proposal.cjs
+     default theme, M0.2) — deliberate palette, shared with pricing.html. -->
+<!-- impeccable-disable single-font: detector artifact — page pairs Iowan Old Style (display) with
+     system-ui (body), which the detector cannot resolve as a counted family. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Merritt Digital</title>
+<title>Merritt Digital — a design studio that pitches with the finished thing</title>
+<meta name="description" content="Merritt Digital builds business websites and pitches them as working sites at real URLs, not mockups. See three live builds, the method behind them, and the whole price list in public.">
+<meta property="og:title" content="Merritt Digital — a design studio that pitches with the finished thing">
+<meta property="og:description" content="Three live builds you can open right now. The method that makes them. Every price published.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%231A1C20'/%3E%3Ctext x='16' y='22' font-family='Georgia,serif' font-size='15' fill='%23E3C57E' text-anchor='middle'%3EM%3C/text%3E%3C/svg%3E">
 <style>
-  body{margin:0;background:#1A1C20;color:#FAF7F0;font-family:system-ui,sans-serif;display:grid;min-height:100vh;place-items:center;text-align:center}
-  h1{font-family:Iowan Old Style,Charter,Palatino,Georgia,serif;font-weight:600;font-size:clamp(28px,5vw,42px);margin:0 0 10px}
-  .k{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#E3C57E}
-  p{color:#C9CCD3;max-width:44ch;margin:12px auto 22px}
-  a{display:inline-block;background:#B08D4A;color:#131519;font-weight:600;padding:13px 28px;border-radius:4px;text-decoration:none;min-height:44px;box-sizing:border-box}
+  :root{
+    --field:#1A1C20; --field-deep:#131519; --line:#3A3D45;
+    --brass:#B08D4A; --brass-lt:#E3C57E; --brass-dk:#7A5F2B;
+    --paper:#FAF7F0; --ink:#23262B; --ink-dim:#565B66;
+    --on-field:#C9CCD3; --on-field-dim:#8A8F99; --rule-paper:#E4DCC8;
+    --serif:Iowan Old Style,Charter,Palatino,Georgia,serif;
+    --sans:system-ui,-apple-system,"Segoe UI",sans-serif;
+    --settle:cubic-bezier(.22,.61,.36,1);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--field);color:var(--on-field);font-family:var(--sans);font-size:16px;line-height:1.55;overflow-x:hidden;-webkit-text-size-adjust:100%}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px;position:relative;z-index:2}
+  a{color:inherit}
+  img{max-width:100%;display:block}
+
+  /* ── engraved ornament (§3.4): one motif, deployed cropped/mirrored/dimmed ── */
+  .engraving{position:absolute;pointer-events:none;color:var(--line);opacity:.16}
+  .engraving svg{display:block}
+  header,section,footer{position:relative;overflow:hidden}
+
+  /* ── nav ── */
+  nav{border-bottom:1px solid rgba(176,141,74,.28);position:relative;z-index:3}
+  .nav-in{max-width:1080px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .wordmark{font-family:var(--serif);font-size:16px;letter-spacing:.2em;text-indent:.2em;color:var(--paper);text-decoration:none;padding:10px 0;min-height:44px;display:flex;align-items:center}
+  .nav-links{display:flex;gap:4px;flex-wrap:wrap}
+  .nav-links a{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--on-field);text-decoration:none;padding:12px 12px;min-height:44px;display:flex;align-items:center;border-radius:3px}
+  .nav-links a:hover,.nav-links a:focus-visible{color:var(--brass-lt);background:rgba(176,141,74,.1)}
+
+  /* ── hero (§3.3) ── */
+  header{background:radial-gradient(130% 85% at 50% -25%,#262A31 0%,var(--field) 55%,var(--field-deep) 100%);padding-bottom:56px}
+  .edge-text{position:absolute;left:9px;top:200px;writing-mode:vertical-rl;transform:rotate(180deg);font-size:11px;letter-spacing:.4em;color:#8E939C;text-transform:uppercase}
+  .hero{text-align:center;padding-top:56px}
+  .crest{width:74px;height:74px;border:1.5px solid var(--brass);border-radius:50%;margin:0 auto;position:relative;display:grid;place-items:center}
+  .crest::after{content:"";position:absolute;inset:5px;border:1px solid rgba(176,141,74,.5);border-radius:50%}
+  .crest svg{width:32px;height:32px;stroke:var(--brass-lt);fill:none;stroke-width:1.3}
+  h1{font-family:var(--serif);font-weight:600;color:var(--paper);font-size:clamp(24px,5.6vw,46px);--ls:clamp(.06em,1.4vw,.2em);letter-spacing:var(--ls);text-indent:var(--ls);line-height:1.14;margin-top:22px}
+  .hero .sub{font-size:clamp(11px,2.4vw,13px);letter-spacing:.3em;text-indent:.3em;text-transform:uppercase;color:var(--brass);margin-top:12px}
+  .hero-rule{width:120px;height:1px;margin:26px auto 0;background:linear-gradient(90deg,transparent,var(--brass),transparent)}
+  .lede{font-family:var(--serif);font-size:clamp(19px,2.6vw,25px);line-height:1.45;color:var(--paper);max-width:34ch;margin:26px auto 0;text-wrap:balance}
+  .dek{max-width:56ch;margin:16px auto 0;color:var(--on-field);font-size:15px}
+  .cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:30px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:13px 26px;border-radius:4px;text-decoration:none;font-size:15px;font-weight:600;transition:background .2s var(--settle),color .2s var(--settle),transform .2s var(--settle)}
+  .btn-gold{background:var(--brass);color:var(--field-deep)}
+  .btn-gold:hover,.btn-gold:focus-visible{background:var(--brass-lt)}
+  .btn-line{border:1px solid var(--brass);color:var(--brass-lt)}
+  .btn-line:hover,.btn-line:focus-visible{background:rgba(176,141,74,.14)}
+  .btn:active{transform:translateY(1px)}
+
+  /* ── the LIVE element: studio ledger (§3.2 grammar, §3.9 contract) ── */
+  .ledger{background:var(--paper);color:var(--ink);border:1px solid rgba(176,141,74,.55);border-radius:6px;max-width:720px;margin:40px auto 0;padding:22px 24px 18px;text-align:center}
+  .ledger .label{font-size:11px;letter-spacing:.28em;text-indent:.28em;text-transform:uppercase;color:var(--brass-dk)}
+  .ledger .row{display:flex;justify-content:center;gap:7vw;flex-wrap:wrap;margin-top:14px}
+  .ledger .fig{font-family:var(--serif);font-size:clamp(26px,5.4vw,34px);font-weight:600;color:var(--field);line-height:1.15}
+  .ledger .unit{font-size:13px;color:var(--ink-dim);margin-top:2px}
+  .ledger .status{margin-top:16px;padding-top:12px;border-top:1px solid var(--rule-paper);font-size:13px;color:var(--ink-dim)}
+  .ledger .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#2E8B63;margin-right:8px;vertical-align:middle}
+
+  /* ── section heads (§3.5) ── */
+  section{padding:64px 0}
+  .sec-head{text-align:center;margin-bottom:38px;position:relative;z-index:2}
+  .sec-head .kicker{font-size:12px;letter-spacing:.26em;text-indent:.26em;text-transform:uppercase;color:var(--brass)}
+  .sec-head h2{font-family:var(--serif);font-weight:600;font-size:clamp(24px,4.6vw,32px);letter-spacing:.04em;text-indent:.04em;color:var(--paper);margin-top:10px}
+  .sec-head p{max-width:58ch;margin:14px auto 0;color:var(--on-field);font-size:15px}
+
+  /* ── the specimen drawer (the work) ── */
+  .drawer{display:grid;gap:34px;position:relative;z-index:2}
+  .plate{background:var(--paper);color:var(--ink);border:1px solid var(--rule-paper);border-radius:6px;overflow:hidden;display:grid;grid-template-columns:1.2fr .9fr}
+  .plate .shot{border-right:1px solid var(--rule-paper);background:#F2EDE1;display:flex;align-items:center;justify-content:center;padding:26px 22px}
+  .plate .mat{background:#fff;border:1px solid var(--rule-paper);border-radius:2px;padding:8px;width:100%}
+  .plate .shot img{width:100%;height:auto;aspect-ratio:1120/752;object-fit:cover;object-position:top center}
+  .plate .caption{padding:28px 26px 24px;display:flex;flex-direction:column}
+  .plate .no{font-size:11px;letter-spacing:.24em;text-indent:.24em;text-transform:uppercase;color:var(--brass-dk)}
+  .plate h3{font-family:var(--serif);font-size:clamp(21px,2.6vw,25px);font-weight:600;margin-top:8px}
+  .plate .where{font-size:13px;color:var(--ink-dim);margin-top:3px}
+  .plate .story{font-family:var(--serif);font-size:17px;line-height:1.4;color:var(--field);border-left:2px solid var(--brass);padding-left:14px;margin:16px 0 14px}
+  .plate p.body{font-size:14.5px;color:#3D424A}
+  .marks{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 0;padding-top:16px;border-top:1px solid var(--rule-paper)}
+  .mark{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass-dk);border:1px solid #E0D5BC;border-radius:3px;padding:6px 10px}
+  a.mark{text-decoration:none;min-height:44px;display:inline-flex;align-items:center}
+  a.mark:hover,a.mark:focus-visible{background:#F4EEE0;border-color:var(--brass)}
+  .open{margin-top:18px;align-self:flex-start;display:inline-flex;align-items:center;min-height:44px;padding:11px 0;font-size:15px;font-weight:600;color:var(--brass-dk);text-decoration:none;border-bottom:2px solid transparent}
+  .open:hover,.open:focus-visible{border-bottom-color:var(--brass)}
+  .open .arr{margin-left:8px;transition:transform .2s var(--settle)}
+  .open:hover .arr,.open:focus-visible .arr{transform:translate(3px,-3px)}
+  .drawer-note{text-align:center;color:var(--on-field-dim);font-size:13.5px;max-width:62ch;margin:30px auto 0;position:relative;z-index:2}
+
+  /* ── the method (§3.6 card grid) ── */
+  .method{background:var(--field-deep);border-top:1px solid rgba(176,141,74,.2);border-bottom:1px solid rgba(176,141,74,.2)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;position:relative;z-index:2}
+  .card{background:var(--paper);color:var(--ink);border:1px solid var(--rule-paper);border-radius:6px;padding:26px 22px 20px;text-align:center;transition:transform .2s var(--settle)}
+  .card:hover,.card:focus-within{transform:translateY(-4px)}
+  .card svg{width:44px;height:44px;stroke:var(--brass-dk);fill:none;stroke-width:1.4;margin:0 auto}
+  .card h3{font-family:var(--serif);font-size:23px;font-weight:600;margin-top:14px}
+  .card p{font-size:14px;color:#3D424A;margin-top:8px}
+  .card .tag{display:inline-block;margin-top:16px;padding-top:12px;border-top:1px solid var(--rule-paper);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--brass-dk)}
+
+  /* ── pricing waypoint (§3.7 split band) ── */
+  .price-band{display:grid;grid-template-columns:1.15fr .85fr;gap:28px;align-items:stretch;position:relative;z-index:2}
+  .price-band h2{font-family:var(--serif);font-weight:600;font-size:clamp(24px,4.4vw,34px);color:var(--paper);line-height:1.2}
+  .price-band h2 em{font-style:normal;color:var(--brass-lt)}
+  .price-band .dek{margin:16px 0 0}
+  .assure{list-style:none;margin-top:22px}
+  .assure li{position:relative;padding:9px 0 9px 26px;font-size:14.5px;border-top:1px solid rgba(176,141,74,.18)}
+  .assure li::before{content:"—";position:absolute;left:0;color:var(--brass)}
+  .rate-card{background:var(--paper);color:var(--ink);border:1px solid var(--rule-paper);border-radius:6px;padding:26px 24px 22px;display:flex;flex-direction:column}
+  .rate-card .label{font-size:11px;letter-spacing:.24em;text-indent:.24em;text-transform:uppercase;color:var(--brass-dk);text-align:center}
+  .rates{list-style:none;margin-top:14px}
+  .rates li{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:11px 0;border-top:1px solid var(--rule-paper);font-size:14.5px}
+  .rates li:first-child{border-top:0}
+  .rates .n{font-family:var(--serif);font-size:18px;font-weight:600;color:var(--field);white-space:nowrap}
+  .rate-card .btn{margin-top:20px}
+  .rate-card .fine{font-size:12.5px;color:var(--ink-dim);text-align:center;margin-top:12px}
+
+  /* ── the ask ── */
+  .ask{text-align:center}
+  .ask h2{font-family:var(--serif);font-weight:600;font-size:clamp(24px,4.6vw,34px);color:var(--paper);letter-spacing:.04em;text-indent:.04em}
+  .ask p{max-width:52ch;margin:16px auto 0;color:var(--on-field);font-size:15px}
+
+  /* ── footer (§3.8 hallmark strip) ── */
+  footer{background:var(--field-deep);border-top:1px solid rgba(176,141,74,.2);padding:44px 0 40px;text-align:center}
+  .hallmarks{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .hallmark{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--on-field);border:1px solid rgba(176,141,74,.35);border-radius:4px;padding:8px 13px}
+  .fine{margin-top:22px;font-size:13px;color:var(--on-field-dim)}
+  .fine a{color:var(--brass);text-decoration:none;border-bottom:1px solid transparent}
+  .fine a:hover,.fine a:focus-visible{border-bottom-color:var(--brass)}
+  .provenance{margin-top:12px;font-size:13px;color:var(--on-field-dim)}
+
+  /* ── the studio's one breakpoint (§3.7) ── */
+  @media(max-width:560px){
+    .edge-text{display:none}
+    .nav-in{padding:8px 24px 10px}
+  }
+  @media(min-width:561px) and (max-width:920px){
+    .cards{grid-template-columns:repeat(2,1fr)}
+  }
+  @media(max-width:840px){
+    .plate{grid-template-columns:1fr}
+    .plate .shot{border-right:0;border-bottom:1px solid var(--rule-paper)}
+    .price-band{grid-template-columns:1fr}
+  }
+
+  /* ── motion (§5.0–5.3): one hero moment, compositor-only, never gates content ── */
+  @media (prefers-reduced-motion: no-preference){
+    @supports (animation-timeline: view()){
+      .reveal{animation:rise both;animation-timeline:view();animation-range:entry 0% entry 55%}
+      @keyframes rise{from{opacity:0;transform:translateY(26px)}}
+    }
+  }
 </style>
 </head>
 <body>
-<main>
-  <div class="k">Merritt Digital · Alameda</div>
-  <h1>Sites built like the things you trust</h1>
-  <p>The full site is being built in the open. The numbers are already public — no quotes-on-request here.</p>
-  <a href="pricing.html">See the pricing</a>
-</main>
+
+<nav>
+  <div class="nav-in">
+    <a class="wordmark" href="#top">MERRITT DIGITAL</a>
+    <div class="nav-links">
+      <a href="#work">The work</a>
+      <a href="#method">The method</a>
+      <a href="pricing.html">Pricing</a>
+      <a href="#ask">Start</a>
+    </div>
+  </div>
+</nav>
+
+<header id="top">
+  <div class="engraving" style="right:-150px;top:-70px" aria-hidden="true">
+    <svg width="520" height="560" viewBox="0 0 520 560">
+      <g stroke="currentColor" fill="none" stroke-width="1">
+        <circle cx="260" cy="260" r="152"/><circle cx="260" cy="260" r="119"/><circle cx="260" cy="260" r="63"/><circle cx="260" cy="260" r="8"/>
+        <path d="M260 97C288 141 288 181 260 211C232 181 232 141 260 97Z"/>
+        <path d="M260 97C288 141 288 181 260 211C232 181 232 141 260 97Z" transform="rotate(30 260 260)"/>
+        <path d="M260 97C288 141 288 181 260 211C232 181 232 141 260 97Z" transform="rotate(60 260 260)"/>
+        <path d="M260 97C288 141 288 181 260 211C232 181 232 141 260 97Z" transform="rotate(90 260 260)"/>
+        <path d="M260 97C288 141 288 181 260 211C232 181 232 141 260 97Z" transform="rotate(120 260 260)"/>
+        <path d="M260 97C288 141 288 181 260 211C232 181 232 141 260 97Z" transform="rotate(150 260 260)"/>
+        <path d="M260 97C288 141 288 181 260 211C232 181 232 141 260 97Z" transform="rotate(180 260 260)"/>
+        <path d="M260 97C288 141 288 181 260 211C232 181 232 141 260 97Z" transform="rotate(210 260 260)"/>
+        <path d="M260 97C288 141 288 181 260 211C232 181 232 141 260 97Z" transform="rotate(240 260 260)"/>
+        <path d="M260 97C288 141 288 181 260 211C232 181 232 141 260 97Z" transform="rotate(270 260 260)"/>
+        <path d="M260 97C288 141 288 181 260 211C232 181 232 141 260 97Z" transform="rotate(300 260 260)"/>
+        <path d="M260 97C288 141 288 181 260 211C232 181 232 141 260 97Z" transform="rotate(330 260 260)"/>
+        <path d="M42 486H478M42 502H478"/>
+        <path d="M96 470v32M178 470v32M260 470v32M342 470v32M424 470v32"/>
+        <path d="M40 40h34M57 23v34M446 40h34M463 23v34"/>
+      </g>
+    </svg>
+  </div>
+  <div class="edge-text" aria-hidden="true">Alameda · California</div>
+
+  <div class="wrap hero">
+    <div class="crest">
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="5" y="4" width="22" height="24" rx="2"/>
+        <path d="M9 11h14M9 16h14M9 21h9"/>
+      </svg>
+    </div>
+    <h1>MERRITT DIGITAL</h1>
+    <div class="sub">Design studio · Alameda</div>
+    <div class="hero-rule"></div>
+    <p class="lede">We pitch with the finished thing.</p>
+    <p class="dek">Most studios sell you a mockup and a timeline. We build the site first: a real one, at a real URL you can open on your phone. Only then do we talk about what it costs. Three of them are below. Open any of them.</p>
+    <div class="cta-row">
+      <a class="btn btn-gold" href="#work">See the work</a>
+      <a class="btn btn-line" href="pricing.html">See the pricing</a>
+    </div>
+
+    <div class="ledger">
+      <div class="label">Studio ledger</div>
+      <div class="row">
+        <div>
+          <div class="fig">3</div>
+          <div class="unit">live builds on this page</div>
+        </div>
+        <div>
+          <div class="fig">$0</div>
+          <div class="unit">what the demo costs</div>
+        </div>
+        <div>
+          <div class="fig" id="ship-date">28 Jul 2026</div>
+          <div class="unit">this site&rsquo;s last ship</div>
+        </div>
+      </div>
+      <div class="status" id="ledger-status"><span class="dot" style="background:#B07A2E"></span>last ship shown from this page&rsquo;s build date</div>
+    </div>
+  </div>
+</header>
+
+<section id="work">
+  <div class="engraving" style="left:-190px;top:120px;opacity:.1;transform:scaleX(-1)" aria-hidden="true">
+    <svg width="420" height="460" viewBox="60 60 400 440">
+      <g stroke="currentColor" fill="none" stroke-width="1">
+        <circle cx="260" cy="260" r="152"/><circle cx="260" cy="260" r="119"/><circle cx="260" cy="260" r="63"/>
+        <path d="M260 97C288 141 288 181 260 211C232 181 232 141 260 97Z"/>
+        <path d="M260 97C288 141 288 181 260 211C232 181 232 141 260 97Z" transform="rotate(45 260 260)"/>
+        <path d="M260 97C288 141 288 181 260 211C232 181 232 141 260 97Z" transform="rotate(90 260 260)"/>
+        <path d="M260 97C288 141 288 181 260 211C232 181 232 141 260 97Z" transform="rotate(135 260 260)"/>
+        <path d="M260 97C288 141 288 181 260 211C232 181 232 141 260 97Z" transform="rotate(180 260 260)"/>
+        <path d="M260 97C288 141 288 181 260 211C232 181 232 141 260 97Z" transform="rotate(225 260 260)"/>
+        <path d="M260 97C288 141 288 181 260 211C232 181 232 141 260 97Z" transform="rotate(270 260 260)"/>
+        <path d="M260 97C288 141 288 181 260 211C232 181 232 141 260 97Z" transform="rotate(315 260 260)"/>
+      </g>
+    </svg>
+  </div>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="kicker">The work</div>
+      <h2>Three sites. Three objects.</h2>
+      <p>We don&rsquo;t have a house style; we have a house method. For each of these, we found the object the client&rsquo;s customers already trust, and built the site as that object. You can open every one of them right now.</p>
+    </div>
+
+    <div class="drawer">
+
+      <article class="plate reveal">
+        <div class="shot">
+          <div class="mat"><img src="library/work/fortknox.webp" width="1120" height="752" loading="lazy" decoding="async" alt="The Fort Knox site: a gold letterspaced nameplate on a deep navy field, with an ivory presentation window showing live gold and silver spot prices."></div>
+        </div>
+        <div class="caption">
+          <div class="no">Specimen No. 01</div>
+          <h3>Fort Knox Rare Coin &amp; Bullion</h3>
+          <div class="where">Alameda, California · precious metals, by appointment</div>
+          <p class="story">The site IS the PAMP assay card.</p>
+          <p class="body">Their customers already trust one object: the sealed assay card a bullion bar ships inside. We took its grammar whole: the paper presentation window floated on a dark field, the engraved filigree cropped at the edge, the letterspaced serif nameplate, the hallmark punches. The site became that card. The spot prices in the window are a real feed, and they fail soft: when it doesn&rsquo;t answer, the page says so rather than show you a broken number.</p>
+          <div class="marks">
+            <span class="mark">Live spot feed</span>
+            <span class="mark">Single file, no framework</span>
+            <span class="mark">Three-viewport verified</span>
+          </div>
+          <a class="open" href="https://charlotte-s-suite.github.io/fortknox-pitch/" target="_blank" rel="noopener">Open the live site<span class="arr" aria-hidden="true">↗</span></a>
+        </div>
+      </article>
+
+      <article class="plate reveal">
+        <div class="shot">
+          <div class="mat"><img src="library/work/oudkempen.webp" width="1120" height="752" loading="lazy" decoding="async" alt="The Oud-Kempen Eetcafé site: an espresso serif nameplate on a parchment field with a brass flourish, above a framed golden-hour photograph of the terrace."></div>
+        </div>
+        <div class="caption">
+          <div class="no">Specimen No. 02</div>
+          <h3>Oud-Kempen Eetcaf&eacute;</h3>
+          <div class="where">Stavenisse, Zeeland · restaurant, rentals, holiday home</div>
+          <p class="story">The site IS the golden-hour nameplate plate.</p>
+          <p class="body">The caf&eacute; already owned the answer: their own logo, an espresso serif nameplate on parchment with a brass flourish. That became the whole system: framed golden-hour plates on a parchment field, brass foil rules, the flourish reused as the section divider. Their extra services don&rsquo;t hide in a menu: table, bike, jacuzzi and holiday-home bookings sit on the front page as cards, in Dutch, English and German.</p>
+          <div class="marks">
+            <span class="mark">Three languages</span>
+            <span class="mark">Extracted from their logo</span>
+            <span class="mark">Bookings on the front page</span>
+          </div>
+          <a class="open" href="https://charlotte-s-suite.github.io/oudkempeneet-cafe-pitch/" target="_blank" rel="noopener">Open the live site<span class="arr" aria-hidden="true">↗</span></a>
+        </div>
+      </article>
+
+      <article class="plate reveal">
+        <div class="shot">
+          <div class="mat"><img src="library/work/toysafari.webp" width="1120" height="752" loading="lazy" decoding="async" alt="The Toy Safari site: a green and orange storefront header with a search bar, habitat navigation, and a jungle hero reading Explore the joy, find some toys."></div>
+        </div>
+        <div class="caption">
+          <div class="no">Specimen No. 03</div>
+          <h3>Toy Safari</h3>
+          <div class="where">Alameda, California · independent toy store</div>
+          <p class="story">The site IS the store walkthrough.</p>
+          <p class="body">A toy store&rsquo;s magic is the walk through it, so the site is that walk: fourteen habitats rather than a grid of part numbers, in the store&rsquo;s own zebra-and-jungle palette. Search speaks the way people actually ask for toys (by character, by franchise, by age, by scale), and the gift finder sits where the balloon counter does. The point was never a catalogue; it was making the room navigable from a phone.</p>
+          <div class="marks">
+            <span class="mark">Fourteen habitats</span>
+            <span class="mark">Search + gift finder</span>
+            <a class="mark" href="https://charlotte-s-suite.github.io/toy-safari-demo/pitch/" target="_blank" rel="noopener">Pitch deck ↗</a>
+          </div>
+          <a class="open" href="https://charlotte-s-suite.github.io/toy-safari-demo/" target="_blank" rel="noopener">Open the live site<span class="arr" aria-hidden="true">↗</span></a>
+        </div>
+      </article>
+
+    </div>
+    <p class="drawer-note">Each of these is a demonstration build at a public HTTPS URL: the studio&rsquo;s own work, made to pitch with. None is presented as the client&rsquo;s production site; production moves to the client&rsquo;s own domain.</p>
+  </div>
+</section>
+
+<section class="method" id="method">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="kicker">The method</div>
+      <h2>One afternoon, four moves.</h2>
+      <p>The same sequence every time. It is why a free demo is possible at all: the work is disciplined, not heroic.</p>
+    </div>
+    <div class="cards">
+
+      <div class="card reveal">
+        <svg viewBox="0 0 44 44" aria-hidden="true">
+          <rect x="11" y="4" width="22" height="36" rx="3"/>
+          <path d="M18 8h8"/>
+          <circle cx="21" cy="22" r="6"/>
+          <path d="M25.5 26.5 30 31"/>
+        </svg>
+        <h3>Audit</h3>
+        <p>We open your current site on a phone first, the way your customers do. What&rsquo;s slow, what&rsquo;s unreadable, what&rsquo;s missing gets written down before anything gets designed.</p>
+        <span class="tag">On your phone, not ours</span>
+      </div>
+
+      <div class="card reveal">
+        <svg viewBox="0 0 44 44" aria-hidden="true">
+          <circle cx="22" cy="22" r="15"/>
+          <circle cx="22" cy="22" r="7"/>
+          <path d="M22 4v6M22 34v6M4 22h6M34 22h6"/>
+        </svg>
+        <h3>Extract</h3>
+        <p>We find the object your customers already trust: the packaging, the certificate, the storefront, the logo you&rsquo;ve had for thirty years. Then we name its grammar, and the site becomes that object.</p>
+        <span class="tag">Yours, not your category&rsquo;s</span>
+      </div>
+
+      <div class="card reveal">
+        <svg viewBox="0 0 44 44" aria-hidden="true">
+          <rect x="5" y="9" width="34" height="26" rx="3"/>
+          <path d="M5 16h34"/>
+          <path d="M11 23h13M11 28h9"/>
+          <path d="M29 22v8M33 22v8"/>
+        </svg>
+        <h3>Build</h3>
+        <p>One file, no framework, no build step, which is why it loads instantly. One element on the page carries real live data. Every layout is composed three times, for phone, tablet and desktop.</p>
+        <span class="tag">390 · 834 · 1280, every time</span>
+      </div>
+
+      <div class="card reveal">
+        <svg viewBox="0 0 44 44" aria-hidden="true">
+          <circle cx="22" cy="22" r="15"/>
+          <path d="M7 22h30M22 7c4 4.6 6 9.6 6 15s-2 10.4-6 15c-4-4.6-6-9.6-6-15s2-10.4 6-15Z"/>
+        </svg>
+        <h3>Deploy</h3>
+        <p>It goes to a real HTTPS address the same day, with a printed pitch to keep. You open it, share it, sleep on it. Nothing is owed for any of that.</p>
+        <span class="tag">A URL, not a slide</span>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section id="pricing">
+  <div class="engraving" style="right:-210px;bottom:-120px;opacity:.1" aria-hidden="true">
+    <svg width="420" height="440" viewBox="80 40 400 420">
+      <g stroke="currentColor" fill="none" stroke-width="1">
+        <circle cx="260" cy="260" r="152"/><circle cx="260" cy="260" r="119"/>
+        <path d="M260 97C288 141 288 181 260 211C232 181 232 141 260 97Z" transform="rotate(20 260 260)"/>
+        <path d="M260 97C288 141 288 181 260 211C232 181 232 141 260 97Z" transform="rotate(80 260 260)"/>
+        <path d="M260 97C288 141 288 181 260 211C232 181 232 141 260 97Z" transform="rotate(140 260 260)"/>
+        <path d="M260 97C288 141 288 181 260 211C232 181 232 141 260 97Z" transform="rotate(200 260 260)"/>
+        <path d="M42 486H478"/><path d="M96 470v32M178 470v32M260 470v32"/>
+      </g>
+    </svg>
+  </div>
+  <div class="wrap">
+    <div class="price-band">
+      <div>
+        <h2>The prices are on the website.<br><em>All of them.</em></h2>
+        <p class="dek">A studio that hides its rates is telling you the number depends on how you look. Ours doesn&rsquo;t. Here is the whole structure, in public, on a page you can read before you ever write to us.</p>
+        <ul class="assure">
+          <li>The build price is the build price; we never discount it. When it helps to meet you partway, we comp months of Care instead.</li>
+          <li>Ranges are scoped in writing before work starts, and land on one fixed, itemized number.</li>
+          <li>Monthly plans cancel like they should, outside the stated 12-month term on the nothing-down plan.</li>
+        </ul>
+      </div>
+      <div class="rate-card">
+        <div class="label">Cost structure</div>
+        <ul class="rates">
+          <li><span>The Demo</span><span class="n">$0</span></li>
+          <li><span>Launch</span><span class="n">$2,500</span></li>
+          <li><span>Signature</span><span class="n">$6,000&ndash;$12,000</span></li>
+          <li><span>Care</span><span class="n">from $149/mo</span></li>
+          <li><span>Nothing down</span><span class="n">$249/mo</span></li>
+        </ul>
+        <a class="btn btn-gold" href="pricing.html">See what&rsquo;s in each</a>
+        <p class="fine">Ratified 2026-07-06. Every figure on this site comes from one source file.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="method ask" id="ask">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="kicker">The ask</div>
+      <h2>Ask for the demo. It&rsquo;s free.</h2>
+      <p>Tell us the business and what your current site gets wrong. We&rsquo;ll build a working one and send you the link. If it isn&rsquo;t obviously better than what you have, you&rsquo;ve lost an email and we&rsquo;ve lost an afternoon.</p>
+    </div>
+    <div class="cta-row">
+      <a class="btn btn-gold" href="mailto:schylermcnally@gmail.com?subject=Merritt%20Digital%20demo">Ask for your free demo</a>
+      <a class="btn btn-line" href="#work">Look at the work again</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="engraving" style="left:50%;transform:translateX(-50%);bottom:-260px;opacity:.08" aria-hidden="true">
+    <svg width="460" height="300" viewBox="30 60 460 300">
+      <g stroke="currentColor" fill="none" stroke-width="1">
+        <circle cx="260" cy="260" r="152"/><circle cx="260" cy="260" r="119"/><circle cx="260" cy="260" r="63"/>
+        <path d="M260 97C288 141 288 181 260 211C232 181 232 141 260 97Z"/>
+        <path d="M260 97C288 141 288 181 260 211C232 181 232 141 260 97Z" transform="rotate(60 260 260)"/>
+        <path d="M260 97C288 141 288 181 260 211C232 181 232 141 260 97Z" transform="rotate(300 260 260)"/>
+      </g>
+    </svg>
+  </div>
+  <div class="wrap">
+    <div class="hallmarks">
+      <span class="hallmark">Alameda, California</span>
+      <span class="hallmark">Demos are free</span>
+      <span class="hallmark">Prices published</span>
+      <span class="hallmark">Single-file builds</span>
+    </div>
+    <p class="fine">Merritt Digital &middot; <a href="mailto:schylermcnally@gmail.com">schylermcnally@gmail.com</a> &middot; <a href="pricing.html">Pricing</a></p>
+    <p class="provenance">Built by Merritt Digital &middot; one dependency-free file per page &middot; prices ratified 2026-07-06</p>
+  </div>
+</footer>
+
+<script>
+/* The LIVE element (§3.9 contract): this site's own last ship, read from the public commit log.
+   Seeded values render with JS off; both terminal states are honest. */
+(function(){
+  var st = document.getElementById('ledger-status');
+  var el = document.getElementById('ship-date');
+  function soft(){
+    st.innerHTML = '<span class="dot" style="background:#B07A2E"></span>last ship shown from this page\u2019s build date; the commit log didn\u2019t answer just now';
+  }
+  try{
+    fetch('https://api.github.com/repos/Charlotte-s-suite/merritt-digital/commits?per_page=1',
+          {headers:{'Accept':'application/vnd.github+json'}})
+      .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function(j){
+        var c = j && j[0] && j[0].commit && j[0].commit.committer;
+        if(!c || !c.date) throw new Error('shape');
+        var d = new Date(c.date);
+        if(isNaN(d)) throw new Error('date');
+        el.textContent = d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+        st.innerHTML = '<span class="dot"></span>live · read from this site&rsquo;s public commit log';
+      })
+      .catch(soft);
+  }catch(e){ soft(); }
+})();
+</script>
 </body>
 </html>
