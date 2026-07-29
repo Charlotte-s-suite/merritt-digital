@@ -85,6 +85,25 @@ out-shouts reading copy.
   depth, opening a menu that names each station. It is a real `<button>` with `aria-expanded`,
   Escape closes it and returns focus, and every target is ≥44px.
 
+## The jays (added 2026-07-29)
+
+Blue jays cross the view as it descends. Two decisions carry them:
+
+- **Everything about them is a function of scroll position, never of time** — position,
+  wingbeat phase, bank. Scroll back up and they fly backwards with their wings un-beating, for
+  free; a stationary page still renders nothing, so the ledger's idle claim stays literally true;
+  and the motion is distance-mapped, which is what §5.2 asks of scrub work. Any future creature
+  or motion on this page inherits that rule.
+- **Jay blue is the only non-brass colour on the site, and it is earned** — they are blue jays.
+  Muted (`#8CAFD2` mantle, `#5E7591` primaries, `#DCE3EA` throat) so it sits with the metal
+  rather than shouting over it. This is not licence for a second accent.
+
+Two honest notes. They are drawn at **heroic scale** (1.5–2.2×) and placed 1.7–3.6 units from
+the lens: a real jay against a 20m oak is a speck, and a speck cannot flap in slow motion where
+anyone can see it. Proximity does most of that work, scale does the rest, and it is stated here
+rather than pretended. And each bird is its own object — one draw call each — because each beats
+its own wings; the ledger reports the true scene total, not the oak's single call.
+
 ## Rules this surface commits to
 
 1. **The static page is the design.** WebGL layers over a complete, readable page after LCP, and

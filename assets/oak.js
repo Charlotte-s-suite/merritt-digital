@@ -16,6 +16,7 @@
    ───────────────────────────────────────────────────────────────────────────── */
 
 import * as THREE from '../vendor/three.module.min.js';
+import { makeJays } from './jays.js';
 
 /* ── deterministic randomness ────────────────────────────────────────────────
    Same oak on every load and every device. A tree that reshuffles per visit is
@@ -280,6 +281,80 @@ const STATIONS = [
   { y: -10, dist: 30, rot: 3.30, look: -10, off: 10 },  // roots — in among the root plate
 ];
 
+function station(t) {
+  const span = STATIONS.length - 1;
+  const f = THREE.MathUtils.clamp(t, 0, 1) * span;
+  const i = Math.min(Math.floor(f), span - 1);
+  const k = f - i;
+  // smoothstep between stations: the ride eases at each beat instead of
+  // running at constant speed through the whole tree
+  const e = k * k * (3 - 2 * k);
+  const a = STATIONS[i], b = STATIONS[i + 1];
+  return {
+    y:    a.y    + (b.y    - a.y)    * e,
+    dist: a.dist + (b.dist - a.dist) * e,
+    rot:  a.rot  + (b.rot  - a.rot)  * e,
+    look: a.look + (b.look - a.look) * e,
+    off:  a.off  + (b.off  - a.off)  * e,
+  };
+}
+
+/* Where the camera sits at a given scroll position. Used both by the frame loop
+   and by the jay placement, so the birds are anchored to the actual rail rather
+   than to a second guess at it. */
+function cameraAt(t, split) {
+  const s = station(t);
+  const pos = new THREE.Vector3(Math.sin(s.rot) * s.dist, s.y, Math.cos(s.rot) * s.dist);
+  const target = new THREE.Vector3(0, s.look, 0);
+  if (split && s.off) {
+    // mirror frame()'s camera.translateX(-off): the shift is in camera space, so
+    // anything anchored to the rail has to be shifted with it
+    const fwd = target.clone().sub(pos).normalize();
+    const right = new THREE.Vector3().crossVectors(fwd, new THREE.Vector3(0, 1, 0)).normalize();
+    pos.addScaledVector(right, -s.off);
+  }
+  return { pos, target };
+}
+
+/* Anchors for the jays: each bird is given an encounter point on the camera rail,
+   sat a few units off to one side of the view, and a heading that carries it
+   across the frame. Deterministic from the same seed discipline as the oak. */
+function jayAnchors(seed, split) {
+  const rand = mulberry32(seed);
+  const rng = (a, b) => a + rand() * (b - a);
+  const UP = new THREE.Vector3(0, 1, 0);
+  const out = [];
+  const COUNT = 6;
+  for (let i = 0; i < COUNT; i++) {
+    // spread the encounters through the descent, skipping the very ends
+    const at = 0.07 + (i / (COUNT - 1)) * 0.68 + rng(-0.02, 0.02);
+    const { pos, target } = cameraAt(at, split);
+    const fwd = target.clone().sub(pos).normalize();
+    const right = new THREE.Vector3().crossVectors(fwd, UP).normalize();
+    const up = new THREE.Vector3().crossVectors(right, fwd).normalize();
+    const side = i % 2 ? 1 : -1;
+    // close to the lens: at true scale a jay is tiny against a 30-unit oak, so
+    // proximity — not inflation — is what makes it read
+    const anchor = pos.clone()
+      .addScaledVector(fwd, rng(1.7, 3.6))
+      .addScaledVector(right, rng(-1.1, 1.1))
+      .addScaledVector(up, rng(-0.9, 1.3));
+    const heading = right.clone().multiplyScalar(side)
+      .addScaledVector(fwd, rng(-0.35, 0.35))
+      .addScaledVector(UP, rng(-0.10, 0.14)).normalize();
+    out.push({
+      anchor, heading, up: UP.clone(), at,
+      travel: rng(70, 105),      // world units per full page of scroll
+      beats: rng(30, 44),        // wingbeats per full page — deliberately slow
+      /* Heroic scale, stated rather than pretended: a real jay against a 20m oak
+         is a speck, and a speck cannot flap in slow motion where anyone can see it.
+         Proximity does most of the work; this does the rest. */
+      scale: rng(1.5, 2.2),
+    });
+  }
+  return out;
+}
+
 export function mountOak(canvas, opts = {}) {
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(42, 1, 0.5, 400);
@@ -298,6 +373,15 @@ export function mountOak(canvas, opts = {}) {
   /* The oak is cut across frames, never in one block (see growOak's stepper).
      Until it is finished the scene simply has nothing in it — and the static
      engraving underneath is still the design, so nothing is missing. */
+  let jays = null, jaySplit = null;
+  function flock(split) {
+    if (jaySplit === split) return;
+    if (jays) { scene.remove(jays.group); jays.dispose(); }
+    jaySplit = split;
+    jays = makeJays(jayAnchors(72926, split));
+    scene.add(jays.group);
+  }
+
   const cutter = growOak(20260728);
   let geometry = null, segments = 0, bounds = null, cutting = true;
   let resolveReady;
@@ -339,28 +423,12 @@ export function mountOak(canvas, opts = {}) {
   const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
   let progress = 0, shown = 0, dirty = true, running = true, raf = 0;
 
-  function station(t) {
-    const span = STATIONS.length - 1;
-    const f = THREE.MathUtils.clamp(t, 0, 1) * span;
-    const i = Math.min(Math.floor(f), span - 1);
-    const k = f - i;
-    // smoothstep between stations: the ride eases at each beat instead of
-    // running at constant speed through the whole tree
-    const e = k * k * (3 - 2 * k);
-    const a = STATIONS[i], b = STATIONS[i + 1];
-    return {
-      y:    a.y    + (b.y    - a.y)    * e,
-      dist: a.dist + (b.dist - a.dist) * e,
-      rot:  a.rot  + (b.rot  - a.rot)  * e,
-      look: a.look + (b.look - a.look) * e,
-      off:  a.off  + (b.off  - a.off)  * e,
-    };
-  }
 
   function frame() {
     raf = 0;
     if (!running) return;
     const moved = resize();
+    flock(W >= 900);
 
     // ease toward the scroll target and the pointer target; keep rendering
     // while anything is still settling, then stop completely
@@ -371,6 +439,8 @@ export function mountOak(canvas, opts = {}) {
     pointer.y += (pointer.ty - pointer.y) * 0.06;
 
     // opts.station pins the camera for silhouette review; production never sets it
+    flock(W >= 900);
+    jays.update(shown);
     const s = opts.station || station(shown);
     // pointer parallax is bounded to a few world units (§5.5) — a breath, not a ride
     const px = pointer.x * 3.2, py = pointer.y * 2.0;
@@ -430,6 +500,7 @@ export function mountOak(canvas, opts = {}) {
   return {
     ready,
     get segments() { return segments; },
+    get jays() { return jays ? jays.count : 0; },
     get bounds() { return bounds; },
     drawCalls: () => renderer.info.render.calls,
     renders: () => renderer.info.render.frame,   // cumulative frames, for idle-cost proof
@@ -441,6 +512,7 @@ export function mountOak(canvas, opts = {}) {
       removeEventListener('pointermove', onPointer);
       document.removeEventListener('visibilitychange', onVisibility);
       cutting = false;
+      if (jays) jays.dispose();
       if (geometry) geometry.dispose();
       oak.geometry.dispose();
       material.dispose(); renderer.dispose();
