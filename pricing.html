@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<!-- Merritt Digital — cost structure. Baked from pricing.json (ratified 2026-07-06, Schyler).
+     Regenerate by hand from pricing.json on any ratified change — the JSON is the single source.
+     Laws honored: single file, no external deps, system fonts, three-viewport, 44px targets. -->
+<!-- impeccable-disable cream-palette: #FAF7F0 is the studio's ratified paper token (press/proposal.cjs
+     default theme, M0.2) — deliberate palette, predates this page. -->
+<!-- impeccable-disable single-font: detector artifact — page pairs Iowan Old Style (display) with
+     system-ui (body), which the detector cannot resolve as a counted family. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pricing — Merritt Digital</title>
+<meta name="description" content="Merritt Digital cost structure: free live demo, Launch $2,500, Signature $6–12k, Care from $149/mo, Local Engine $1,199/mo. Honest terms, stated up front.">
+<style>
+  :root{
+    --field:#1A1C20; --field-deep:#131519; --line:#3A3D45;
+    --brass:#B08D4A; --brass-lt:#E3C57E;
+    --paper:#FAF7F0; --ink:#23262B; --ink-dim:#565B66;
+    --serif:Iowan Old Style,Charter,Palatino,Georgia,serif;
+    --sans:system-ui,-apple-system,"Segoe UI",sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.55;overflow-x:hidden}
+  .field{background:var(--field);color:var(--paper)}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+  header.field{padding:56px 0 48px;border-bottom:1px solid var(--brass)}
+  .kicker{font-family:var(--sans);font-size:12px;letter-spacing:.18em;padding-left:.18em;text-transform:uppercase;color:var(--brass-lt);text-align:center}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(30px,5vw,44px);text-align:center;margin-top:10px}
+  .sub{text-align:center;color:#C9CCD3;max-width:560px;margin:14px auto 0;font-size:15px}
+  main{padding:48px 0 24px}
+  h2{font-family:var(--serif);font-weight:600;font-size:clamp(22px,3.2vw,28px);margin:40px 0 6px}
+  .rule-note{color:var(--ink-dim);font-size:14px;margin-bottom:20px}
+  .tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-top:20px}
+  .tier{border:1px solid var(--line);border-radius:6px;padding:26px 24px;background:#fff;display:flex;flex-direction:column}
+  .tier.flag{border-color:var(--brass);border-width:2px}
+  .tier .name{font-family:var(--serif);font-size:21px;font-weight:600}
+  .tier .price{font-family:var(--serif);font-size:clamp(26px,3vw,32px);margin:8px 0 2px;color:var(--field)}
+  .tier .per{font-size:13px;color:var(--ink-dim)}
+  .tier .tag{color:var(--ink-dim);font-size:14px;margin:8px 0 14px}
+  .tier ul{list-style:none;margin-top:auto}
+  .tier li{padding:7px 0 7px 22px;position:relative;font-size:14px;border-top:1px solid #EEE9DE}
+  .tier li::before{content:"";position:absolute;left:2px;top:14px;width:9px;height:9px;border:1.5px solid var(--brass);border-radius:50%}
+  .badge{display:inline-block;font-size:11px;letter-spacing:.14em;padding:4px 10px 3px 11px;text-transform:uppercase;border:1px solid var(--brass);color:#8A6D33;border-radius:3px;margin-bottom:12px}
+  .care-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+  .waas{border:2px solid var(--brass);border-radius:6px;background:var(--field);color:var(--paper);padding:30px 26px;margin:44px 0 8px;display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center}
+  .waas h3{font-family:var(--serif);font-size:24px;font-weight:600}
+  .waas p{color:#C9CCD3;font-size:14px;margin-top:8px;max-width:56ch}
+  .waas .price{font-family:var(--serif);font-size:34px;color:var(--brass-lt);text-align:right}
+  .waas .per{display:block;font-size:13px;color:#9BA0AA;font-family:var(--sans);text-align:right}
+  .terms{background:#fff;border:1px solid var(--line);border-radius:6px;padding:26px 24px;margin-top:28px}
+  .terms h3{font-family:var(--serif);font-size:19px;margin-bottom:10px}
+  .terms li{margin:8px 0 8px 20px;font-size:14px}
+  .cta{display:inline-block;background:var(--brass);color:var(--field-deep);font-weight:600;padding:13px 28px;border-radius:4px;text-decoration:none;font-size:15px;min-height:44px;line-height:1.2}
+  .cta:hover{background:var(--brass-lt)}
+  .cta-row{text-align:center;padding:34px 0 10px}
+  footer{border-top:1px solid var(--line);margin-top:44px;padding:26px 0 34px;color:var(--ink-dim);font-size:13px;text-align:center}
+  @media(max-width:520px){
+    .waas{grid-template-columns:1fr}
+    .waas .price,.waas .per{text-align:left}
+  }
+</style>
+</head>
+<body>
+<header class="field">
+  <div class="wrap">
+    <div class="kicker">Merritt Digital · Alameda</div>
+    <h1>What it costs, in plain numbers</h1>
+    <p class="sub">Every price on this page is the price. No quotes-on-request, no surprise line items. The demo is free because seeing it built is the only pitch worth your time.</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <h2>The build</h2>
+  <p class="rule-note">Start free. Go production-real when the demo earns it.</p>
+  <div class="tiers">
+    <div class="tier">
+      <div class="name">The Demo</div>
+      <div class="price">$0</div>
+      <div class="per">free, before any commitment</div>
+      <p class="tag">A working site at a live URL, built from your business. The close tool.</p>
+      <ul>
+        <li>Live demo at a real URL you can open on your phone</li>
+        <li>One live data element: real, never mocked, fails soft</li>
+        <li>Verified on phone, tablet, and desktop</li>
+        <li>Styled pitch PDF to keep</li>
+      </ul>
+    </div>
+    <div class="tier">
+      <div class="name">Launch</div>
+      <div class="price">$2,500</div>
+      <div class="per">one-time</div>
+      <p class="tag">Your demo, made production-real.</p>
+      <ul>
+        <li>Full polish and copy pass</li>
+        <li>Up to ten pages</li>
+        <li>Your domain, HTTPS included</li>
+        <li>Google Business Profile optimization</li>
+        <li>Analytics wired, UTM-clean</li>
+        <li>30-day fix window after handoff</li>
+      </ul>
+    </div>
+    <div class="tier flag">
+      <div class="badge">The flagship</div>
+      <div class="name">Signature</div>
+      <div class="price">$6,000&ndash;$12,000</div>
+      <div class="per">one-time, scoped to your build</div>
+      <p class="tag">Your brand as an experience: design language extracted from what your customers already trust, carried to full depth.</p>
+      <ul>
+        <li>Everything in Launch</li>
+        <li>Motion grade: scroll-driven choreography, locally hosted</li>
+        <li>Optional WebGL hero, performance-budgeted, fails soft</li>
+        <li>Booking and commerce integrations</li>
+        <li>Department pages</li>
+        <li>Core Web Vitals gate on every page</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>The care</h2>
+  <p class="rule-note">A site without care is how you got the site you have now. Every build ships with a care quote.</p>
+  <div class="care-grid">
+    <div class="tier">
+      <div class="name">Keep</div>
+      <div class="price">$149<span class="per"> /month</span></div>
+      <p class="tag">The site stays fast, safe, and current.</p>
+      <ul>
+        <li>Hosting</li>
+        <li>Security and backups</li>
+        <li>Uptime and Core Web Vitals watch</li>
+        <li>Small edits when you need them</li>
+      </ul>
+    </div>
+    <div class="tier">
+      <div class="name">Grow</div>
+      <div class="price">$299<span class="per"> /month</span></div>
+      <p class="tag">Keep, plus the site works your market.</p>
+      <ul>
+        <li>Everything in Keep</li>
+        <li>Monthly content updates</li>
+        <li>Monthly one-page performance report</li>
+        <li>Seasonal refresh</li>
+      </ul>
+    </div>
+    <div class="tier">
+      <div class="name">Local Engine</div>
+      <div class="price">$1,199<span class="per"> /month</span></div>
+      <p class="tag">Local marketing as a service. Requires a Care plan.</p>
+      <ul>
+        <li>Google Business Profile management and posting calendar</li>
+        <li>Local SEO</li>
+        <li>Social publishing, with your approval on everything</li>
+        <li>Monthly attribution report: UTM, QR, promo codes</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="waas">
+    <div>
+      <h3>Nothing down: $249/month</h3>
+      <p>Launch plus Keep, bundled, $0 down, 12-month minimum. The site becomes yours outright after month twelve. Those are the whole terms; there is no fine print to find.</p>
+    </div>
+    <div>
+      <span class="price">$249</span>
+      <span class="per">/month &middot; 12-mo minimum</span>
+    </div>
+  </div>
+
+  <div class="terms">
+    <h3>How we hold our prices</h3>
+    <ul>
+      <li><strong>The build price is the build price.</strong> We never discount it. When it helps to meet you partway, we comp months of Care instead.</li>
+      <li><strong>Ranges are scoped in writing before work starts.</strong> A Signature quote lands at a fixed number inside the range, itemized.</li>
+      <li><strong>Monthly plans cancel like they should.</strong> No annual lock-in outside the stated WaaS minimum.</li>
+    </ul>
+  </div>
+
+  <div class="cta-row">
+    <a class="cta" href="mailto:schylermcnally@gmail.com?subject=Merritt%20Digital%20demo">Ask for your free demo</a>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">Merritt Digital &middot; pricing ratified 2026-07-06 &middot; every number on this page is current as of this file's date</div>
+</footer>
+</body>
+</html>
