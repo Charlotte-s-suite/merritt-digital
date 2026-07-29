@@ -1,23 +1,564 @@
 <!DOCTYPE html>
+<!--
+  DIRECTION CONTRACT — Merritt Digital, one page
+
+  THESIS: A studio's portfolio should be the page you are standing on. This refuses the
+  agency grid of client thumbnails and the capability card-deck; it demonstrates instead,
+  and measures itself out loud while it does.
+  OWN-WORLD: The engraved assay plate in three dimensions. Brass on ink (#B08D4A/#E3C57E on
+  #1A1C20), Libre Caslon Display cut for the things of value, Archivo for apparatus, and one
+  oak drawn entirely in line — no surfaces, no shading, depth from line density alone.
+  STORY: A visitor arrives inside the canopy, descends the tree as they read, finds the page
+  auditing itself on the way down, and lands at the roots where the numbers and the ask are.
+  FIRST VIEWPORT: The canopy fills the frame; nameplate centred in Caslon at ~104px with the
+  studio line beneath; one sentence of thesis; a rule and a scroll cue. The acorn — the
+  primary navigation — is already at the lower right, filling as you descend.
+  FORM: Scroll-driven WebGL line engraving. Brief-pinned by Schyler (2026-07-28), so no
+  concept roll was run; the world is the studio's own ratified grammar taken into space.
+
+  LAWS: single dependency-free page + vendored-local three.js (law 3 amendment, Signature
+  tier) · WebGL layers over a complete static page and never gates it (§5.5) · all motion
+  inside prefers-reduced-motion (§5.0) · every number from merritt-studio/pricing.json.
+-->
+<!-- impeccable-disable cream-palette -- #FAF7F0 is the studio's ratified paper token, used here
+     only as display ink on the dark field; the ground is #1A1C20. -->
+<!-- impeccable-disable flat-type-hierarchy -- verified false positive, not a waiver of the rule's
+     intent. Static mode cannot resolve clamp(), so it sees only the two utility steps (13/15px)
+     and none of the fluid display scale. Measured on the rendered page (Playwright, computed
+     font-size of every text-bearing element): 13→104px, ratio 8.0:1 at 1280 and 13→38px, 2.9:1
+     at 390 — both above the 2.0 floor the rule enforces. Re-verify with
+     scratchpad/typescale.cjs if this page's type changes. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Merritt Digital</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Merritt Digital — a design studio in Alameda, California</title>
+<meta name="description" content="Merritt Digital builds business websites that behave like objects. This page is the portfolio: a hand-built oak engraving in real 3D, measuring its own weight and frame rate as you scroll it.">
+<meta property="og:title" content="Merritt Digital — this page is the portfolio">
+<meta property="og:description" content="An oak drawn entirely in line, turned by your scroll, on a page that audits itself out loud.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#1A1C20">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%231A1C20'/%3E%3Ctext x='16' y='23' font-family='Georgia,serif' font-size='17' fill='%23E3C57E' text-anchor='middle'%3EM%3C/text%3E%3C/svg%3E">
+<link rel="preload" href="assets/fonts/LibreCaslonDisplay-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/Archivo-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <style>
-  body{margin:0;background:#1A1C20;color:#FAF7F0;font-family:system-ui,sans-serif;display:grid;min-height:100vh;place-items:center;text-align:center}
-  h1{font-family:Iowan Old Style,Charter,Palatino,Georgia,serif;font-weight:600;font-size:clamp(28px,5vw,42px);margin:0 0 10px}
-  .k{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#E3C57E}
-  p{color:#C9CCD3;max-width:44ch;margin:12px auto 22px}
-  a{display:inline-block;background:#B08D4A;color:#131519;font-weight:600;padding:13px 28px;border-radius:4px;text-decoration:none;min-height:44px;box-sizing:border-box}
+  /* ── the faces (self-hosted, subset to the glyphs this page uses; OFL 1.1) ── */
+  @font-face{font-family:"Caslon Display";src:url(assets/fonts/LibreCaslonDisplay-Regular.woff2) format("woff2");font-weight:400;font-style:normal;font-display:swap}
+  @font-face{font-family:"Archivo";src:url(assets/fonts/Archivo-Regular.woff2) format("woff2");font-weight:400;font-style:normal;font-display:swap}
+  @font-face{font-family:"Archivo";src:url(assets/fonts/Archivo-SemiBold.woff2) format("woff2");font-weight:600;font-style:normal;font-display:swap}
+
+  :root{
+    --field:#1A1C20; --field-deep:#131519;
+    --brass:#B08D4A; --brass-lt:#E3C57E; --brass-dp:#8A6C34;
+    --paper:#FAF7F0; --on-field:#C9CCD3; --on-field-dim:#9AA0A9;
+    --rule:rgba(176,141,74,.26);
+    --display:"Caslon Display",Iowan Old Style,Charter,Palatino,Georgia,serif;
+    --sans:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
+    --settle:cubic-bezier(.22,.61,.36,1);
+    --gut:clamp(22px,4vw,40px);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--field);color:var(--on-field);font-family:var(--sans);font-size:17px;line-height:1.6;overflow-x:hidden;-webkit-text-size-adjust:100%;
+    background-image:radial-gradient(120% 70% at 50% 0%,#23262D 0%,var(--field) 46%,var(--field-deep) 100%);background-attachment:fixed}
+  img,svg{display:block;max-width:100%}
+  ::selection{background:var(--brass);color:var(--field-deep)}
+  a{color:var(--brass-lt)}
+  :focus-visible{outline:2px solid var(--brass-lt);outline-offset:3px;border-radius:2px}
+
+  /* ── the stage: canvas and static engraving both live behind everything ── */
+  .stage{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  #oak{width:100%;height:100%;opacity:0;transition:opacity 1.1s var(--settle)}
+  .stage.live #oak{opacity:1}
+  /* the static engraving IS the design until WebGL earns its place (§5.5) */
+  .static-oak{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(1500px,190vw);color:var(--brass);opacity:.3;transition:opacity .9s var(--settle)}
+  .stage.live .static-oak{opacity:0}
+  .vignette{position:absolute;inset:0;background:radial-gradient(78% 60% at 50% 45%,transparent 22%,rgba(19,21,25,.82) 100%)}
+  /* on wide screens the reading column gets its own quiet ground */
+  @media(min-width:900px){.vignette{background:radial-gradient(78% 60% at 50% 45%,transparent 22%,rgba(19,21,25,.82) 100%),linear-gradient(90deg,rgba(19,21,25,.72) 0%,rgba(19,21,25,.34) 34%,transparent 56%)}}
+  /* cursor flourish: an engraver's registration mark, pointer devices only */
+  .reg{position:fixed;left:0;top:0;z-index:1;pointer-events:none;opacity:0;color:var(--brass);transition:opacity .5s var(--settle);will-change:transform}
+  body.has-pointer .reg{opacity:.5}
+
+  .wrap{width:100%;max-width:1120px;margin:0 auto;padding:0 var(--gut);position:relative;z-index:2}
+  section{position:relative;z-index:2;padding:14vh 0;min-height:100vh;min-height:100svh;display:flex;align-items:center}
+
+  /* ── canopy ── */
+  .canopy{text-align:center;padding-top:12vh}
+  .plate-line{width:1px;height:clamp(48px,9vh,88px);margin:0 auto 26px;background:linear-gradient(var(--brass),transparent)}
+  h1{font-family:var(--display);font-weight:400;color:var(--paper);
+     font-size:clamp(38px,9.4vw,104px);--ls:clamp(.02em,.9vw,.11em);letter-spacing:var(--ls);text-indent:var(--ls);line-height:1.02}
+  .studio{margin-top:20px;font-size:13px;letter-spacing:.32em;text-indent:.32em;text-transform:uppercase;color:var(--brass)}
+  .hairline{width:clamp(80px,16vw,190px);height:1px;margin:30px auto;background:linear-gradient(90deg,transparent,var(--brass),transparent)}
+  .thesis{font-family:var(--display);font-size:clamp(23px,3.4vw,38px);line-height:1.32;color:var(--paper);max-width:20ch;margin:0 auto;text-wrap:balance}
+  .canopy .body{max-width:62ch;margin:24px auto 0;color:var(--on-field)}
+  .cue{margin-top:40px;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--on-field-dim)}
+  .cue span{display:block;width:1px;height:34px;margin:12px auto 0;background:linear-gradient(var(--brass),transparent)}
+
+  /* ── shared section furniture ── */
+  h2{font-family:var(--display);font-weight:400;color:var(--paper);font-size:clamp(30px,4.6vw,52px);line-height:1.1;letter-spacing:.01em;text-wrap:balance}
+  .dek{max-width:64ch;margin-top:20px;color:var(--on-field)}
+
+  /* ── the ledger: the page measuring itself ── */
+  .ledger{margin-top:clamp(40px,7vh,72px)}
+  .row{display:grid;grid-template-columns:minmax(0,9ch) minmax(0,1fr);gap:6px clamp(14px,3vw,30px);align-items:baseline;
+       padding:26px 0;border-bottom:1px solid var(--rule)}
+  .row:first-child{border-top:1px solid var(--rule)}
+  .row .note{grid-column:2}
+  .row dt{font-size:13px;letter-spacing:.2em;text-indent:.2em;text-transform:uppercase;color:var(--brass);padding-top:.7em}
+  .row .val{font-family:var(--display);font-size:clamp(25px,3.4vw,40px);line-height:1.15;color:var(--paper);font-variant-numeric:tabular-nums}
+  .row .val b{font-weight:400;color:var(--brass-lt)}
+  .row .note{font-size:15px;color:var(--on-field-dim);margin:0}
+  .measured{margin-top:22px;font-size:15px;color:var(--on-field-dim);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .measured .dot{width:7px;height:7px;border-radius:50%;background:#C08A3E;flex:none}
+  .measured.on .dot{background:#3FB27F}
+
+  /* ── the trunk: the method, as a descent ── */
+  .moves{margin-top:clamp(40px,7vh,72px);counter-reset:move}
+  .move{display:grid;grid-template-columns:auto minmax(0,1fr);gap:clamp(18px,3.6vw,44px);padding:30px 0;border-top:1px solid var(--rule)}
+  .move::before{counter-increment:move;content:counter(move,decimal-leading-zero);font-family:var(--display);font-size:clamp(26px,3.6vw,42px);color:var(--brass-dp);line-height:1}
+  .move h3{font-family:var(--display);font-weight:400;font-size:clamp(23px,3vw,33px);color:var(--paper);line-height:1.15}
+  .move p{margin-top:10px;max-width:58ch;color:var(--on-field)}
+
+  /* ── the roots: numbers and the ask ── */
+  .rates{margin-top:clamp(34px,6vh,60px)}
+  .rate{display:flex;justify-content:space-between;align-items:baseline;gap:20px;padding:20px 0;border-bottom:1px solid var(--rule)}
+  .rate:first-child{border-top:1px solid var(--rule)}
+  .rate .what{font-size:15px;color:var(--on-field)}
+  .rate .n{font-family:var(--display);font-size:clamp(23px,3vw,34px);color:var(--paper);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .terms{margin-top:26px;font-size:15px;color:var(--on-field-dim);max-width:64ch}
+  .actions{display:flex;gap:16px;flex-wrap:wrap;margin-top:clamp(34px,5vh,52px)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:15px 30px;border-radius:3px;
+       font-size:15px;font-weight:600;text-decoration:none;letter-spacing:.01em;transition:background .22s var(--settle),color .22s var(--settle),border-color .22s var(--settle)}
+  .btn-gold{background:var(--brass);color:#15171B}
+  .btn-gold:hover,.btn-gold:focus-visible{background:var(--brass-lt)}
+  .btn-line{border:1px solid var(--brass);color:var(--brass-lt)}
+  .btn-line:hover,.btn-line:focus-visible{background:rgba(176,141,74,.14);border-color:var(--brass-lt)}
+
+  /* ── colophon ── */
+  footer{position:relative;z-index:2;background:var(--field-deep);border-top:1px solid var(--rule);padding:clamp(48px,8vh,80px) 0 calc(clamp(48px,8vh,80px) + env(safe-area-inset-bottom))}
+  .colophon{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:clamp(22px,4vw,44px)}
+  .colophon h3{font-size:13px;letter-spacing:.2em;text-indent:.2em;text-transform:uppercase;color:var(--brass);font-weight:400}
+  .colophon p{margin-top:10px;font-size:15px;color:var(--on-field-dim)}
+  .colophon a{color:var(--on-field);text-decoration:none;border-bottom:1px solid var(--rule)}
+  .colophon a:hover,.colophon a:focus-visible{border-bottom-color:var(--brass)}
+  .provenance{margin-top:clamp(30px,5vh,50px);padding-top:24px;border-top:1px solid var(--rule);font-size:13px;color:var(--on-field-dim)}
+
+  /* ── the acorn: navigation that travels with you ── */
+  .acorn-dock{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:calc(18px + env(safe-area-inset-bottom));z-index:20;display:flex;flex-direction:column;align-items:flex-end;gap:12px}
+  .acorn{width:64px;height:64px;border-radius:50%;border:0;background:var(--field-deep);position:relative;cursor:pointer;
+         box-shadow:0 10px 30px -12px rgba(0,0,0,.9);transition:transform .24s var(--settle)}
+  .acorn:hover,.acorn:focus-visible{transform:translateY(-3px)}
+  .acorn:active{transform:translateY(0)}
+  .acorn .ring{position:absolute;inset:0;transform:rotate(-90deg)}
+  .acorn .ring circle{fill:none;stroke-width:2}
+  .acorn .track{stroke:rgba(176,141,74,.28)}
+  .acorn .fill{stroke:var(--brass-lt);stroke-linecap:round;transition:stroke-dashoffset .12s linear}
+  .acorn .nut{position:absolute;left:50%;top:50%;width:28px;height:28px;transform:translate(-50%,-50%)}
+  .acorn .cap-fill{fill:var(--brass)}
+  .acorn .nut-fill{fill:var(--brass-lt)}
+  .acorn .hatch{stroke:#15171B;stroke-width:.9;opacity:.55}
+
+  .menu{background:var(--field-deep);border:1px solid var(--rule);border-radius:6px;padding:8px;min-width:230px;
+        transform-origin:bottom right;transition:opacity .2s var(--settle),transform .2s var(--settle)}
+  .menu[hidden]{display:none}
+  .menu.closing,.menu.opening{opacity:0;transform:scale(.94) translateY(6px)}
+  .menu a{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:48px;padding:12px 14px;
+          text-decoration:none;color:var(--on-field);font-size:15px;border-radius:4px}
+  .menu a:hover,.menu a:focus-visible{background:rgba(176,141,74,.13);color:var(--paper)}
+  .menu a[aria-current="true"]{color:var(--brass-lt)}
+  .menu a .depth{font-family:var(--display);font-size:15px;color:var(--brass-dp);font-variant-numeric:tabular-nums}
+  .menu a[aria-current="true"] .depth{color:var(--brass-lt)}
+  .menu .out{border-top:1px solid var(--rule);margin-top:6px;padding-top:10px}
+
+  /* ── the editorial split: on wide screens the copy holds the left, the oak
+        holds the right, and neither is asked to be legible through the other ── */
+  @media(min-width:900px){
+    #branches .wrap > *, #trunk .wrap > *, #roots .wrap > *{max-width:min(100%,660px)}
+  }
+
+  /* ── recompose, don't shrink ── */
+  @media(max-width:840px){
+    .row{grid-template-columns:minmax(0,1fr);gap:6px}
+    .row dt{padding-top:0}
+    /* the note's explicit column must be released when the grid collapses, or it
+       conjures a phantom second column and the value lands on top of its label */
+    .row .note{grid-column:1;margin-top:4px}
+  }
+  @media(max-width:560px){
+    body{font-size:16px}
+    .acorn{width:58px;height:58px}
+    .acorn-dock{right:14px;bottom:calc(14px + env(safe-area-inset-bottom))}
+    .menu{min-width:min(78vw,260px)}
+  }
+
+  /* ── motion: one authored descent; everything else is micro (§5.0) ── */
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto}
+    #oak,.static-oak,.reg{transition:none}
+  }
+  @media (prefers-reduced-motion: no-preference){
+    @supports (animation-timeline: view()){
+      .rise{animation:rise both;animation-timeline:view();animation-range:entry 4% entry 46%}
+      @keyframes rise{from{opacity:0;transform:translateY(22px)}}
+    }
+  }
 </style>
 </head>
 <body>
+
+<!-- The stage. Static engraving first — it is the design, not a placeholder (§5.5). -->
+<div class="stage" id="stage" aria-hidden="true">
+  <canvas id="oak"></canvas>
+  <svg class="static-oak" viewBox="0 0 800 620" fill="none" stroke="currentColor" stroke-width="1">
+    <g stroke-linecap="round">
+      <path d="M400 620V300M400 300c-6-40-30-64-64-84M400 300c6-46 34-70 74-92M400 386c-8-34-40-52-78-62M400 386c10-30 44-46 84-54"/>
+      <path d="M336 216c-30-16-46-40-54-72M336 216c-36 4-64-6-92-30M474 208c26-24 36-52 38-88M474 208c34 0 66-14 92-42"/>
+      <path d="M478 260c34-10 58-30 76-58M322 244c-32-6-58-24-78-52"/>
+      <path d="M282 144c-14-18-20-36-22-58M244 186c-22-6-40-18-56-36M512 120c8-20 10-40 8-62M566 166c22-10 38-24 52-44"/>
+      <path d="M554 202c26 2 48-6 68-22M246 236c-24 4-46-2-66-16"/>
+      <circle cx="400" cy="470" r="150" opacity=".22"/><circle cx="400" cy="470" r="196" opacity=".13"/>
+      <path d="M120 470h560" opacity=".3"/>
+      <path d="M400 500c-40 18-70 46-92 84M400 500c44 16 76 44 100 82M400 540c-16 26-24 52-26 80M400 540c18 24 28 50 32 78"/>
+    </g>
+  </svg>
+  <div class="vignette"></div>
+</div>
+
+<svg class="reg" id="reg" width="66" height="66" viewBox="0 0 66 66" fill="none" stroke="currentColor" aria-hidden="true">
+  <circle cx="33" cy="33" r="15" stroke-width="1"/>
+  <path d="M33 4v14M33 48v14M4 33h14M48 33h14" stroke-width="1"/>
+  <circle cx="33" cy="33" r="1.4" fill="currentColor" stroke="none"/>
+</svg>
+
 <main>
-  <div class="k">Merritt Digital · Alameda</div>
-  <h1>Sites built like the things you trust</h1>
-  <p>The full site is being built in the open. The numbers are already public — no quotes-on-request here.</p>
-  <a href="pricing.html">See the pricing</a>
+
+  <section class="canopy" id="canopy">
+    <div class="wrap">
+      <div class="plate-line"></div>
+      <h1>Merritt Digital</h1>
+      <p class="studio">Design studio &middot; Alameda</p>
+      <div class="hairline"></div>
+      <p class="thesis">This page is the portfolio.</p>
+      <p class="body">You are inside the canopy of an oak that is real geometry, drawn entirely in line and turned by your scroll. It was built the way we build for clients: one page, no framework, no template, nothing bought in. Keep going and it takes you to the roots.</p>
+      <p class="cue">Scroll into the tree<span></span></p>
+    </div>
+  </section>
+
+  <section id="branches">
+    <div class="wrap">
+      <h2 class="rise">A capability you can&rsquo;t inspect is just a claim.</h2>
+      <p class="dek rise">So this section audits the page you are standing on, on your device, on this load. Open the developer tools and check any line of it.</p>
+
+      <dl class="ledger">
+        <div class="row rise">
+          <dt>Dimension</dt>
+          <dd class="val"><b id="m-seg">7,735</b> segments <span aria-hidden="true">&middot;</span> <b id="m-draw">1</b> draw call</dd>
+          <dd class="note">One merged geometry, one material. No textures, no lights, no shadow maps, no post-processing. An engraving doesn&rsquo;t need them, which is exactly why it stays fast.</dd>
+        </div>
+        <div class="row rise">
+          <dt>Frame</dt>
+          <dd class="val"><b id="m-fps">60</b> fps</dd>
+          <dd class="note">The tree renders only when something actually changes. Stop scrolling and it stops working, which is why this doesn&rsquo;t flatten a battery or an older tablet.</dd>
+        </div>
+        <div class="row rise">
+          <dt>Letterform</dt>
+          <dd class="val"><b>3</b> cuts <span aria-hidden="true">&middot;</span> <b>24</b> kB</dd>
+          <dd class="note">Libre Caslon Display for the things of value, Archivo for the apparatus, self-hosted and subset to only the glyphs this page sets. No font network, no tracking.</dd>
+        </div>
+        <div class="row rise">
+          <dt>Weight</dt>
+          <dd class="val"><b id="m-kb">&mdash;</b> kB</dd>
+          <dd class="note">Everything it took to give you this: markup, styles, three faces, the 3D engine and the tree itself. No tracker, no tag manager, no cookie banner, no font CDN &mdash; none of the weight that usually arrives before the content does.</dd>
+        </div>
+        <div class="row rise">
+          <dt>Floor</dt>
+          <dd class="val">Complete without <b>JavaScript</b></dd>
+          <dd class="note">Turn it off, refuse the 3D, browse on a decade-old phone. The page still reads, still navigates, still tells you what it costs. Nothing here is load-bearing decoration.</dd>
+        </div>
+      </dl>
+
+      <p class="measured" id="measured">
+        <span class="dot"></span>
+        <span id="measured-text">Figures from our reference run &mdash; they measure themselves live once scripting is on.</span>
+      </p>
+    </div>
+  </section>
+
+  <section id="trunk">
+    <div class="wrap">
+      <h2 class="rise">One afternoon, four moves.</h2>
+      <p class="dek rise">The same sequence every time, which is the only reason a free demo is possible at all. Discipline, not heroics.</p>
+
+      <div class="moves">
+        <article class="move rise">
+          <div>
+            <h3>We open your site on a phone</h3>
+            <p>Before anything is designed, we look at what you have the way your customers do: on a phone, on a bad connection, in daylight. What&rsquo;s slow, what&rsquo;s unreadable and what&rsquo;s missing gets written down first.</p>
+          </div>
+        </article>
+        <article class="move rise">
+          <div>
+            <h3>We find the object you already own</h3>
+            <p>Every business has one thing its customers already trust: the packaging, the certificate, the storefront, the logo that hasn&rsquo;t changed in thirty years. We name what makes that object work, and the site becomes it. That is why our sites don&rsquo;t look like each other.</p>
+          </div>
+        </article>
+        <article class="move rise">
+          <div>
+            <h3>We build the real thing</h3>
+            <p>Not a mockup and not a theme. One page of hand-written code, no framework, with one element carrying real live data, composed three separate times for phone, tablet and desktop. The oak behind you is what this move looks like at full stretch.</p>
+          </div>
+        </article>
+        <article class="move rise">
+          <div>
+            <h3>We put it at a real address</h3>
+            <p>It goes live the same day at an address you can open, share and sleep on, with a printed pitch to keep. Nothing is owed for any of it. If it isn&rsquo;t obviously better than what you have, we&rsquo;ve both learned something cheaply.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="roots" id="roots">
+    <div class="wrap">
+      <h2 class="rise">The prices are on the website. All of them.</h2>
+      <p class="dek rise">A studio that hides its rates is telling you the number depends on how you look. Here is the whole structure, in public, before you ever write to us.</p>
+
+      <div class="rates">
+        <div class="rate rise"><span class="what">The Demo &mdash; a working site at a live address</span><span class="n">$0</span></div>
+        <div class="rate rise"><span class="what">Launch &mdash; your demo, made production-real</span><span class="n">$2,500</span></div>
+        <div class="rate rise"><span class="what">Signature &mdash; your brand as an experience</span><span class="n">$6,000&ndash;$12,000</span></div>
+        <div class="rate rise"><span class="what">Care &mdash; hosting, security, the site kept current</span><span class="n">from $149/mo</span></div>
+        <div class="rate rise"><span class="what">Nothing down &mdash; Launch and Care bundled</span><span class="n">$249/mo</span></div>
+      </div>
+      <p class="terms">We never discount the build; when it helps to meet you partway we comp months of Care instead. Ranges are scoped in writing before work starts and land on one fixed, itemised number. Ratified 2026-07-06.</p>
+
+      <div class="actions">
+        <a class="btn btn-gold" href="mailto:schylermcnally@gmail.com?subject=Merritt%20Digital%20demo">Ask for your free demo</a>
+        <a class="btn btn-line" href="pricing.html">See what&rsquo;s in each tier</a>
+      </div>
+    </div>
+  </section>
+
 </main>
+
+<footer>
+  <div class="wrap">
+    <div class="colophon">
+      <div>
+        <h3>The studio</h3>
+        <p>Merritt Digital, Alameda, California. Websites for businesses that would rather be judged on the finished thing.</p>
+      </div>
+      <div>
+        <h3>This page</h3>
+        <p>Hand-written HTML, CSS and JavaScript. No framework, no build step, no analytics, no cookies, nothing third-party at runtime.</p>
+      </div>
+      <div>
+        <h3>Set in</h3>
+        <p>Libre Caslon Display and Archivo, both under the SIL Open Font License, subset and served from this domain.</p>
+      </div>
+      <div>
+        <h3>The oak</h3>
+        <p>Grown procedurally from a fixed seed and rendered with <a href="vendor/three-LICENSE.txt">three.js</a> (MIT), vendored locally. Never a CDN.</p>
+      </div>
+    </div>
+    <p class="provenance">Built by Merritt Digital &middot; the tree is generated, not photographed &middot; prices ratified 2026-07-06 from the studio&rsquo;s single source</p>
+  </div>
+</footer>
+
+<div class="acorn-dock">
+  <nav class="menu" id="menu" hidden aria-label="Sections">
+    <a href="#canopy" data-nav="canopy">The canopy<span class="depth">00</span></a>
+    <a href="#branches" data-nav="branches">What this page is doing<span class="depth">01</span></a>
+    <a href="#trunk" data-nav="trunk">How we work<span class="depth">02</span></a>
+    <a href="#roots" data-nav="roots">What it costs<span class="depth">03</span></a>
+    <div class="out"><a href="pricing.html">The full rate sheet<span class="depth" aria-hidden="true">&rarr;</span></a></div>
+  </nav>
+  <button class="acorn" id="acorn" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open the menu">
+    <svg class="ring" viewBox="0 0 64 64" aria-hidden="true">
+      <circle class="track" cx="32" cy="32" r="29"/>
+      <circle class="fill" id="ring-fill" cx="32" cy="32" r="29"/>
+    </svg>
+    <svg class="nut" viewBox="0 0 24 24" aria-hidden="true">
+      <path class="nut-fill" d="M5.6 9.4h12.8c0 6.6-2.7 12.2-6.4 12.2S5.6 16 5.6 9.4Z"/>
+      <path class="cap-fill" d="M12 2.4c-4.2 0-7.4 2.6-7.4 5.2 0 .9.6 1.4 1.6 1.4h11.6c1 0 1.6-.5 1.6-1.4 0-2.6-3.2-5.2-7.4-5.2Z"/>
+      <path class="hatch" d="M7.4 4.9 6.2 8.2M10.2 3.3 9.3 8.2M13.8 3.3l.9 4.9M16.6 4.9l1.2 3.3"/>
+      <path class="hatch" d="M12 .9v1.5"/>
+    </svg>
+  </button>
+</div>
+
+<script>
+/* ── the acorn: menu, scroll depth, and the ring that fills as you descend ── */
+(function(){
+  var acorn = document.getElementById('acorn'),
+      menu  = document.getElementById('menu'),
+      fill  = document.getElementById('ring-fill'),
+      links = [].slice.call(menu.querySelectorAll('a[data-nav]')),
+      sections = links.map(function(a){ return document.getElementById(a.dataset.nav); }),
+      C = 2 * Math.PI * 29;
+
+  fill.style.strokeDasharray = C;
+  fill.style.strokeDashoffset = C;
+
+  function open(){
+    menu.hidden = false;
+    menu.classList.add('opening');
+    requestAnimationFrame(function(){ menu.classList.remove('opening'); });
+    acorn.setAttribute('aria-expanded','true');
+    acorn.setAttribute('aria-label','Close the menu');
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('pointerdown', onAway, true);
+  }
+  function close(focusBack){
+    menu.classList.add('closing');
+    acorn.setAttribute('aria-expanded','false');
+    acorn.setAttribute('aria-label','Open the menu');
+    document.removeEventListener('keydown', onKey);
+    document.removeEventListener('pointerdown', onAway, true);
+    setTimeout(function(){ menu.hidden = true; menu.classList.remove('closing'); }, 200);
+    if (focusBack) acorn.focus();
+  }
+  function onKey(e){ if (e.key === 'Escape'){ e.preventDefault(); close(true); } }
+  function onAway(e){ if (!menu.contains(e.target) && !acorn.contains(e.target)) close(false); }
+
+  acorn.addEventListener('click', function(){
+    if (acorn.getAttribute('aria-expanded') === 'true') close(false);
+    else { open(); links[0].focus(); }
+  });
+  [].slice.call(menu.querySelectorAll('a')).forEach(function(a){
+    a.addEventListener('click', function(){ close(false); });
+  });
+
+  /* depth read in the frame, never in the scroll handler */
+  var ticking = false;
+  function read(){
+    ticking = false;
+    var max = document.documentElement.scrollHeight - innerHeight,
+        p = max > 0 ? Math.min(1, Math.max(0, scrollY / max)) : 0;
+    fill.style.strokeDashoffset = C * (1 - p);
+
+    var mid = scrollY + innerHeight * 0.45, cur = 0;
+    for (var i = 0; i < sections.length; i++){
+      if (sections[i] && sections[i].offsetTop <= mid) cur = i;
+    }
+    for (var j = 0; j < links.length; j++){
+      links[j].setAttribute('aria-current', j === cur ? 'true' : 'false');
+    }
+  }
+  function tick(){ if (!ticking){ ticking = true; requestAnimationFrame(read); } }
+  addEventListener('scroll', tick, {passive:true});
+  addEventListener('resize', tick, {passive:true});
+  read();
+})();
+
+/* ── cursor flourish: a registration mark, on real pointers only ── */
+(function(){
+  if (!matchMedia('(pointer: fine)').matches) return;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var reg = document.getElementById('reg'), x = 0, y = 0, tx = 0, ty = 0, on = false, raf = 0;
+  function loop(){
+    raf = 0;
+    x += (tx - x) * 0.16; y += (ty - y) * 0.16;
+    reg.style.transform = 'translate(' + (x - 33) + 'px,' + (y - 33) + 'px)';
+    if (Math.abs(tx - x) > 0.4 || Math.abs(ty - y) > 0.4) raf = requestAnimationFrame(loop);
+  }
+  addEventListener('pointermove', function(e){
+    tx = e.clientX; ty = e.clientY;
+    if (!on){ on = true; x = tx; y = ty; document.body.classList.add('has-pointer'); }
+    if (!raf) raf = requestAnimationFrame(loop);
+  }, {passive:true});
+})();
+
+/* ── the ledger measures this load, honestly, whatever happens next ── */
+var LEDGER = (function(){
+  var kb = document.getElementById('m-kb'),
+      txt = document.getElementById('measured-text'),
+      box = document.getElementById('measured');
+  function weight(){
+    try{
+      var total = 0, seen = false, list = performance.getEntriesByType('resource');
+      var nav = performance.getEntriesByType('navigation')[0];
+      if (nav && nav.transferSize){ total += nav.transferSize; seen = true; }
+      for (var i = 0; i < list.length; i++){
+        if (list[i].transferSize){ total += list[i].transferSize; seen = true; }
+      }
+      if (seen && total > 0) kb.textContent = Math.round(total / 1024).toLocaleString();
+    }catch(e){ /* the seeded em-dash stands */ }
+  }
+  return {
+    weight: weight,
+    say: function(message, live){
+      txt.textContent = message;
+      box.classList.toggle('on', !!live);
+    }
+  };
+})();
+
+/* ── the oak layers over a page that is already complete (§5.5) ── */
+(function(){
+  var stage = document.getElementById('stage');
+
+  function probe(){
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return 'reduced motion is on, so the tree is held still';
+    var c = navigator.connection;
+    if (c && c.saveData) return 'data saver is on, so the 3D was skipped';
+    try{
+      var t = document.createElement('canvas');
+      if (!(t.getContext('webgl2') || t.getContext('webgl'))) return 'this browser didn’t offer WebGL';
+    }catch(e){ return 'this browser didn’t offer WebGL'; }
+    return null;
+  }
+
+  function start(){
+    LEDGER.weight();
+    var refused = probe();
+    if (refused){
+      LEDGER.say('Measured on this load. The 3D figures are from our reference run — ' + refused + '.', false);
+      return;
+    }
+    import('./assets/oak.js').then(function(mod){
+      var oak = mod.mountOak(document.getElementById('oak'));
+      stage.classList.add('live');
+      document.getElementById('m-seg').textContent = oak.segments.toLocaleString();
+
+      /* real frame timing, sampled while the visitor is actually here */
+      var frames = 0, t0 = 0, best = 0, windows = 0;
+      function sample(now){
+        if (!t0) t0 = now;
+        frames++;
+        if (now - t0 >= 900){
+          var fps = Math.round(frames * 1000 / (now - t0));
+          if (fps > best){
+            best = Math.min(fps, 120);
+            document.getElementById('m-fps').textContent = best;
+          }
+          frames = 0; t0 = now; windows++;
+        }
+        // four windows is enough to see this device's ceiling. Then stop entirely:
+        // a page that boasts about idling at zero cost must actually do it.
+        if (windows < 4) requestAnimationFrame(sample);
+      }
+      requestAnimationFrame(sample);
+
+      setTimeout(function(){
+        document.getElementById('m-draw').textContent = oak.drawCalls() || 1;
+        LEDGER.weight();
+        LEDGER.say('Measured on your device, on this load.', true);
+      }, 1200);
+    })['catch'](function(){
+      LEDGER.say('Measured on this load. The 3D didn’t start on this device, so those figures are from our reference run.', false);
+    });
+  }
+
+  /* never before the page has painted its own content */
+  function queue(){
+    if ('requestIdleCallback' in window) requestIdleCallback(start, {timeout:2200});
+    else setTimeout(start, 900);
+  }
+  if (document.readyState === 'complete') queue();
+  else addEventListener('load', queue);
+})();
+</script>
 </body>
 </html>
