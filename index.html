@@ -76,7 +76,7 @@
   .stage.live .static-oak{opacity:0}
   .vignette{position:absolute;inset:0;background:radial-gradient(78% 60% at 50% 45%,transparent 22%,rgba(19,21,25,.82) 100%)}
   /* on wide screens the reading column gets its own quiet ground */
-  @media(min-width:900px){.vignette{background:radial-gradient(78% 60% at 50% 45%,transparent 22%,rgba(19,21,25,.82) 100%),linear-gradient(90deg,rgba(19,21,25,.72) 0%,rgba(19,21,25,.34) 34%,transparent 56%)}}
+  @media(min-width:900px){.vignette{background:radial-gradient(78% 60% at 50% 45%,transparent 22%,rgba(19,21,25,.82) 100%),linear-gradient(90deg,rgba(19,21,25,.88) 0%,rgba(19,21,25,.74) 30%,rgba(19,21,25,.40) 50%,rgba(19,21,25,.10) 64%,transparent 74%)}}
   /* cursor flourish: an engraver's registration mark, pointer devices only */
   .reg{position:fixed;left:0;top:0;z-index:1;pointer-events:none;opacity:0;color:var(--brass);transition:opacity .5s var(--settle);will-change:transform}
   body.has-pointer .reg{opacity:.5}
@@ -212,16 +212,22 @@
 <!-- The stage. Static engraving first — it is the design, not a placeholder (§5.5). -->
 <div class="stage" id="stage" aria-hidden="true">
   <canvas id="oak"></canvas>
-  <svg class="static-oak" viewBox="0 0 800 620" fill="none" stroke="currentColor" stroke-width="1">
+  <svg class="static-oak" viewBox="0 0 900 620" fill="none" stroke="currentColor" stroke-width="1">
     <g stroke-linecap="round">
-      <path d="M400 620V300M400 300c-6-40-30-64-64-84M400 300c6-46 34-70 74-92M400 386c-8-34-40-52-78-62M400 386c10-30 44-46 84-54"/>
-      <path d="M336 216c-30-16-46-40-54-72M336 216c-36 4-64-6-92-30M474 208c26-24 36-52 38-88M474 208c34 0 66-14 92-42"/>
-      <path d="M478 260c34-10 58-30 76-58M322 244c-32-6-58-24-78-52"/>
-      <path d="M282 144c-14-18-20-36-22-58M244 186c-22-6-40-18-56-36M512 120c8-20 10-40 8-62M566 166c22-10 38-24 52-44"/>
-      <path d="M554 202c26 2 48-6 68-22M246 236c-24 4-46-2-66-16"/>
-      <circle cx="400" cy="470" r="150" opacity=".22"/><circle cx="400" cy="470" r="196" opacity=".13"/>
-      <path d="M120 470h560" opacity=".3"/>
-      <path d="M400 500c-40 18-70 46-92 84M400 500c44 16 76 44 100 82M400 540c-16 26-24 52-26 80M400 540c18 24 28 50 32 78"/>
+      <!-- the bole: short, stout, flaring into its own roots -->
+      <path d="M432 470V344M468 470V344M424 470c-2-28 2-52 8-74M476 470c2-28-2-52-8-74"/>
+      <!-- the low fork into a candelabra -->
+      <path d="M450 344c-30-6-62-26-96-62M450 344c30-6 64-28 98-66M450 344c-10-30-12-58-8-88M450 344c-46 4-92-8-140-40M450 344c48 4 96-10 146-44"/>
+      <!-- primary limbs reaching out and up -->
+      <path d="M354 282c-34-22-58-50-72-86M354 282c-44-4-84-18-120-44M548 278c36-24 60-54 74-92M548 278c46-2 88-16 126-44M442 256c-8-34-6-64 4-92M458 254c10-30 16-58 14-88"/>
+      <!-- the dome: an engraver's suggestion of the crown edge -->
+      <path d="M104 246c22-72 74-128 146-158M796 242c-22-74-76-130-150-160M250 88c58-32 122-44 200-44s142 14 200 46" opacity=".5"/>
+      <path d="M150 300c-16-60-6-116 28-166M750 296c16-62 4-118-32-168" opacity=".35"/>
+      <!-- twig mass, cropped, at the crown's skin -->
+      <path d="M182 196c-16-10-28-24-34-42M182 196c-20 2-38-4-54-16M226 148c-12-16-18-34-18-54M226 148c-22-2-40-12-54-28M718 192c16-12 26-26 32-44M718 192c20 2 38-4 54-18M674 144c12-18 16-36 16-56M674 144c22-2 40-14 54-30M450 62c-14-14-22-30-24-50M450 62c14-14 22-30 24-50" opacity=".7"/>
+      <!-- the ground rule and the root plate -->
+      <path d="M120 470h660" opacity=".45"/>
+      <path d="M436 470c-42 22-74 54-96 96M464 470c44 20 78 52 102 94M446 470c-14 34-20 66-20 98M456 470c16 32 24 64 26 96M430 476c-56 10-104 34-142 70M470 476c58 8 108 32 148 68" opacity=".8"/>
     </g>
   </svg>
   <div class="vignette"></div>
@@ -255,7 +261,7 @@
       <dl class="ledger">
         <div class="row rise">
           <dt>Dimension</dt>
-          <dd class="val"><b id="m-seg">7,735</b> segments <span aria-hidden="true">&middot;</span> <b id="m-draw">1</b> draw call</dd>
+          <dd class="val"><b id="m-seg">114,748</b> segments <span aria-hidden="true">&middot;</span> <b id="m-draw">1</b> draw call</dd>
           <dd class="note">One merged geometry, one material. No textures, no lights, no shadow maps, no post-processing. An engraving doesn&rsquo;t need them, which is exactly why it stays fast.</dd>
         </div>
         <div class="row rise">
@@ -521,8 +527,10 @@ var LEDGER = (function(){
     }
     import('./assets/oak.js').then(function(mod){
       var oak = mod.mountOak(document.getElementById('oak'));
+      /* the tree is cut across frames; it appears when it is whole */
+      return oak.ready.then(function(info){
       stage.classList.add('live');
-      document.getElementById('m-seg').textContent = oak.segments.toLocaleString();
+      document.getElementById('m-seg').textContent = info.segments.toLocaleString();
 
       /* real frame timing, sampled while the visitor is actually here */
       var frames = 0, t0 = 0, best = 0, windows = 0;
@@ -548,6 +556,7 @@ var LEDGER = (function(){
         LEDGER.weight();
         LEDGER.say('Measured on your device, on this load.', true);
       }, 1200);
+      });
     })['catch'](function(){
       LEDGER.say('Measured on this load. The 3D didn’t start on this device, so those figures are from our reference run.', false);
     });

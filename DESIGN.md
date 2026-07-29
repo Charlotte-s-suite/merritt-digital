@@ -21,11 +21,26 @@ proposal/assay grammar it sells with; here that grammar stops being printed and 
 turned. One oak, drawn entirely in line, standing in real space, travelled from canopy to roots by
 the scroll.
 
+**The tree is a mighty ancient spreading oak** (reference set 2026-07-29): a short massive bole
+that forks low into a candelabra, under a broad mushroom dome markedly wider than the tree is
+tall, with low limbs sweeping almost level and a root plate flaring at the foot. Measured
+extents: roughly 55 wide over 31 tall above ground. That silhouette is not decoration — an
+upright conical tree would read as a poplar and carry none of the age the page is trading on.
+
 The one-line test: *you are inside the tree, and the tree is an engraving.*
 
 Two rules keep it honest and make it fast, and they are the same rule: **an engraving has no
 shading.** No surfaces, no lights, no shadow maps, no textures, no post-processing. Depth comes
 from line density and parallax, which is why it also holds 60fps on 2018 silicon.
+
+**Three forces shape every step of growth**, and the dome is their consequence rather than a mask
+applied over a cone: thin wood reaches for light, heavy wood settles under its own weight, and the
+crown envelope turns the outermost growth back and rolls it over. Structural wood below the fork
+is exempt — the bole answers to nothing, which is what keeps it a column.
+
+**The canopy is a shell, not a solid.** Twig sprays are emitted only where wood has reached the
+crown's skin; the interior stays open so the limb architecture reads through it. This is both
+truer to an oak and far cheaper than packing the volume with haze.
 
 ## Tokens
 
@@ -75,11 +90,16 @@ out-shouts reading copy.
 1. **The static page is the design.** WebGL layers over a complete, readable page after LCP, and
    only if reduced-motion is off, save-data is off, and a context is granted. Any failure and the
    static engraving simply stays. No spinner, no blank, ever.
-2. **Render only on change.** No idle rAF. Verified: 0 frames over 2.5s idle, 22 on one scroll.
+2. **Render only on change.** No idle rAF. Verified: 0 frames over 2.5s idle, wakes on scroll.
    Any future motion work must preserve this — the page says so out loud in the ledger.
-3. **The ledger measures this load, on this device.** Seeded values are real (7,735 segments,
+7. **The tree is cut across frames, never in one block.** Building 115k segments in a single
+   task measured 957ms on a 4×-throttled CPU — a full second of freeze on the reference iPad.
+   The generator is a queue the renderer drains in 6ms slices. Any future geometry work inherits
+   this rule: if it can't be sliced, it's too big.
+3. **The ledger measures this load, on this device.** Seeded values are real (114,748 segments,
    24 kB of type) and labelled as a reference run until the live read replaces them. Never print
-   a measured-looking number that wasn't measured.
+   a measured-looking number that wasn't measured. **When the tree's morphology changes, the
+   seeded figure must be re-synced** — it is the number a visitor with JavaScript off is shown.
 4. **Numbers come from `merritt-studio/pricing.json`.** Nothing on this page is a price we made up.
 5. **Cursor flourishes are ornament, never affordance.** Pointer-fine only, reduced-motion off,
    bounded parallax (≤ a few world units). Nothing is reachable only by hovering.
@@ -87,8 +107,10 @@ out-shouts reading copy.
 
 ## Payload budget
 
-204 kB over the wire (§5.5 allows 300): three.js 164 · fonts 24 · page 11 · oak 5. If a future
-change pushes past 300 kB, the answer is a smaller engine, not a bigger budget.
+207 kB over the wire (§5.5 allows 300): three.js 164 · fonts 23 · page 11 · oak 8. If a future
+change pushes past 300 kB, the answer is a smaller engine, not a bigger budget. Note the tree
+itself costs nothing to ship — it is generated from a 7.6 kB module and a fixed seed, so detail
+is bought in CPU at load, not in bytes over the wire.
 
 ## What this surface deliberately refuses
 

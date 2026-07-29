@@ -49,7 +49,10 @@ and context handling in scope with no reviewer for it; three.js is named in the 
 this reason. Licence file rides along at `vendor/three-LICENSE.txt`. No CDN, no build step, no
 framework.
 
-**Cost accounted.** 164 kB of the page's 204 kB over the wire. §5.5 ceiling is 300 kB.
+**Cost accounted.** 164 kB of the page's 207 kB over the wire. §5.5 ceiling is 300 kB. A second
+cost that bytes don't show: parsing 666 kB of minified module measures ~500 ms on a 4×-throttled
+CPU. It happens after LCP, on idle, so it never delays first paint — but it is a real one-off
+main-thread cost on old silicon and is recorded here rather than left for someone to discover.
 
 **What reverses it.** Either the studio graduates this site to Signature production (making the
 amendment cover it outright), or the scene gets simple enough for hand-written WebGL, at which
@@ -71,7 +74,7 @@ applies: 24 kB total for three cuts, same-origin, and the system stack still pai
 text never blocks. This is a departure from the letter and, I'd argue, a service to the intent —
 but it is a departure, so it is written down rather than assumed.
 
-**Cost accounted.** 24 kB of 204 kB.
+**Cost accounted.** 23 kB of 207 kB.
 
 **What reverses it.** A ruling that system stacks are the floor for non-graduated tenants, in
 which case `--display`/`--sans` fall back to the Iowan/system stacks already declared in the
