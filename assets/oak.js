@@ -78,12 +78,17 @@ function growOak(seed) {
 
   const BARK_LO = new THREE.Color(0x4A3E33);   // shaded, damp, in the crevices
   const BARK_HI = new THREE.Color(0x7A6A57);   // the raised ridges of an old bole
-  const LEAF = [                               // an oak turning, weighted to brass
-    new THREE.Color(0xD8A94C), new THREE.Color(0xC98A34),
+  /* A tree half into the browning: roughly half the crown still green, half gone
+     over to gold and russet. Schyler, 2026-07-29. */
+  const LEAF = [
+    new THREE.Color(0x5F7A2E), new THREE.Color(0x6E8A36),   // still green
+    new THREE.Color(0x7E9440), new THREE.Color(0x8A9A4A),
+    new THREE.Color(0xD8A94C), new THREE.Color(0xC98A34),   // turning
     new THREE.Color(0xB06A28), new THREE.Color(0x8C4E20),
-    new THREE.Color(0xE0C273), new THREE.Color(0x6F7635),
+    new THREE.Color(0xE0C273),
   ];
-  const LEAF_W = [0.26, 0.22, 0.16, 0.10, 0.18, 0.08];   // last is the green holdout
+  const LEAF_W = [0.16, 0.15, 0.11, 0.08,                  // 0.50 still green
+                  0.16, 0.14, 0.10, 0.05, 0.05];           // 0.50 turned
 
   const GROUND = -2;
   const BOLE   = 7.0;                   // where the trunk gives out and forks
@@ -354,26 +359,34 @@ function growOak(seed) {
    Scroll drives a camera on a rail from the crown of the canopy down past the
    root tips. Scroll is READ in the frame, never handled in a scroll listener —
    that is the difference between smooth and janky on an A12X. */
-/* Station heights and distances are taken from the geometry's MEASURED bounding
-   box (x ∈ [-28, 27], y ∈ [-20, 29], z ∈ [-21, 24]) — a crown 55 wide over a
-   31-tall tree, so the framing has to be much wider than the old upright needed.
-   Guessing these is how the canopy camera once ended up parked in empty sky. */
+/* The ride. Station heights and distances come from the geometry's MEASURED
+   bounding box (x ∈ [-28, 27], y ∈ [-20, 29]); guessing them is how the canopy
+   camera once ended up parked in empty sky.
+
+   `t` places each station along the scroll explicitly, because the last beats need
+   to be fast: the camera falls down the trunk, CLIPS the ground and rebounds off
+   it, then pulls all the way out to reveal the lake, downtown Oakland and the Bay
+   Bridge against the setting sun. Rotation never stops through any of it — `rot`
+   keeps climbing past a full turn. (Schyler, 2026-07-29: the descent no longer
+   ends in the roots.) */
 const STATIONS = [
-  { y:  22, dist: 20, rot: 0.00, look:  19, off:  0 },  // canopy — up inside the dome
-  { y:  15, dist: 58, rot: 1.10, look:  12, off: 14 },  // branches — the crown in full spread
-  { y:   4, dist: 26, rot: 2.25, look:   6, off: 12 },  // trunk — the bole and its low fork
-  { y: -10, dist: 30, rot: 3.30, look: -10, off: 10 },  // roots — in among the root plate
+  { t: 0.00, y:  22, dist:  20, rot: 0.00, look:  19, off:  0 },  // in the crown
+  { t: 0.34, y:  15, dist:  58, rot: 1.30, look:  12, off: 14 },  // the spread
+  { t: 0.62, y:   4, dist:  26, rot: 2.60, look:   6, off: 12 },  // the bole
+  { t: 0.78, y:-1.4, dist:  17, rot: 3.55, look:   3, off:  7 },  // ground contact
+  { t: 0.86, y:   7, dist:  34, rot: 4.15, look:   8, off:  5 },  // the rebound
+  { t: 1.00, y:  46, dist: 185, rot: 5.30, look:  12, off:  0 },  // the whole place
 ];
 
 function station(t) {
-  const span = STATIONS.length - 1;
-  const f = THREE.MathUtils.clamp(t, 0, 1) * span;
-  const i = Math.min(Math.floor(f), span - 1);
-  const k = f - i;
+  const p = THREE.MathUtils.clamp(t, 0, 1);
+  let i = 0;
+  while (i < STATIONS.length - 2 && p > STATIONS[i + 1].t) i++;
+  const a = STATIONS[i], b = STATIONS[i + 1];
+  const k = (p - a.t) / Math.max(1e-6, b.t - a.t);
   // smoothstep between stations: the ride eases at each beat instead of
   // running at constant speed through the whole tree
   const e = k * k * (3 - 2 * k);
-  const a = STATIONS[i], b = STATIONS[i + 1];
   return {
     y:    a.y    + (b.y    - a.y)    * e,
     dist: a.dist + (b.dist - a.dist) * e,
@@ -441,7 +454,7 @@ function jayAnchors(seed, split) {
 
 export function mountOak(canvas, opts = {}) {
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(42, 1, 0.5, 400);
+  const camera = new THREE.PerspectiveCamera(42, 1, 0.5, 3200);   // the reveal sees the bridge
 
   const renderer = new THREE.WebGLRenderer({
     canvas, antialias: true, alpha: true, powerPreference: 'low-power',
@@ -458,8 +471,8 @@ export function mountOak(canvas, opts = {}) {
   /* A low western sun that actually casts. Shadows are the single biggest reason a
      lit scene reads as real rather than as a diagram, so they earn their one map —
      tightly framed on the tree, 2048, soft. */
-  const sun = new THREE.DirectionalLight(0xFFCE96, 3.6);
-  sun.position.set(-90, 52, 26);
+  const sun = new THREE.DirectionalLight(0xFFB765, 4.4);   // low, gold, golden hour
+  sun.position.set(-160, 34, 40);          // very low in the west
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
   sun.shadow.camera.left = -46; sun.shadow.camera.right = 46;
@@ -468,7 +481,7 @@ export function mountOak(canvas, opts = {}) {
   sun.shadow.bias = -0.0006;
   sun.shadow.normalBias = 0.03;
   scene.add(sun);
-  scene.add(new THREE.HemisphereLight(0x7189AB, 0x2A2018, 1.15));
+  scene.add(new THREE.HemisphereLight(0x8C6BA8, 0x3A2A20, 1.25));   // purple sky, warm bounce
 
   const place = makeScene(scene);
   const envRT = installEnvironment(renderer, scene, place.sky);

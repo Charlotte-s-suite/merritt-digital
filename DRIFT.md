@@ -7,6 +7,45 @@ departure nobody wrote down becomes a house style by accident._
 
 ---
 
+## 2026-07-29 · The §5.5 payload ceiling is waived, and image assets are permitted
+
+**The ruling.** Schyler, 2026-07-29: *"I never specified the image cost, I'm fine with using open
+source graphics protocols and free images to generate our own textures and I'm not worried at all
+about staying under 300kb."*
+
+**What it changes.** §5.5's 300 kB WebGL budget no longer binds this tenant, and freely-licensed
+source imagery may be used as material for textures we generate. The two earlier law-3 entries
+below (vendored three.js, self-hosted fonts) are covered by this as well.
+
+**What has NOT changed yet, deliberately.** The page still ships **zero image bytes**: every
+texture is still drawn procedurally into a canvas at load — bark fissures, the lobed leaf, water
+ripple normals, soil strata, jay plumage. The waiver removes a constraint; it does not oblige us to
+spend it, and procedural still costs nothing and carries no licence risk. Current wire total is
+about 230 kB.
+
+**What to watch if we do spend it.** Any downloaded asset needs its licence recorded here beside
+it, and the page's own copy claiming "nothing bought in" has to change the moment that stops being
+true. That copy is a claim, not decoration.
+
+---
+
+## 2026-07-29 · The descent no longer ends in the roots
+
+**The ruling.** Schyler, 2026-07-29: the last phase stops zooming into the roots. Instead the
+camera keeps rotating, **bounces off the ground**, and pulls right out to reveal the lake, downtown
+Oakland and the Bay Bridge silhouetted against a golden-hour sun; the sky and lighting carry that
+gold/orange/purple palette through the whole sequence; and roughly half the leaves stay green, a
+tree half into the browning.
+
+**What it changes.** Six camera stations instead of four, with explicit scroll placement so the
+last two beats can be fast (ground contact at 0.78, rebound at 0.86, the wide reveal at 1.00).
+Rotation runs past a full turn and never stops. The soil section stays in the scene but the camera
+no longer enters it.
+
+**What reverses it.** A new ruling. The four-station descent is recoverable from `oak-grown` history.
+
+---
+
 ## 2026-07-29 · FOUNDING ENTRY — the site is capability-only (scope)
 
 **The ruling.** Schyler, 2026-07-29, direct, relayed through the console lead with the handle
