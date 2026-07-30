@@ -1,5 +1,8 @@
 # TODO — Merritt Digital public site
 
+> **State, branch topology and the paid-for gotchas live in [HANDOFF.md](HANDOFF.md).** Read that
+> first if you are picking this up cold; this file is only the task list.
+
 _The site head's running list. Newest direction at the top; blocked items keep their reason._
 
 ## Blocked — waiting on plugins (direct instruction, 2026-07-28; see DRIFT.md)
