@@ -31,6 +31,34 @@ See TODO.md.
 
 ---
 
+## 2026-07-29 · The engraving is replaced by grown realism (law 6 / DESIGN.md world)
+
+**The change.** The site's visual world was "the engraved assay plate in three dimensions" — an
+oak drawn entirely in line, no surfaces, no shading. It is now a grown oak in autumn with real
+surfaces and real light. Schyler, 2026-07-29, choosing "grown realism, no textures" from options
+put to him with their costs.
+
+**What was preserved, deliberately.** The morphology is untouched — same growth forces, same seed,
+same tree he approved. It was re-clothed, not re-grown. The palette is untouched too, because the
+oak is in **autumn**: a real oak turning is gold and russet, so realism and the ratified
+brass-on-ink palette are the same thing rather than a compromise. That was the site head's call
+and it is the reason nothing else on the site had to change.
+
+**What it costs.** No textures, no model files, no purchased assets: every polygon is generated
+from code and one fixed number, so the detail costs CPU at load rather than bytes over the wire.
+No shadow maps and nothing transparent, because alpha-blended foliage is the one thing 2018 iPad
+silicon cannot afford. Leaves are one instanced draw call; all bark is one merged mesh.
+
+**Honest limit on the evidence.** Time-to-tree and main-thread cost are measured (below). GPU cost
+is **not**: this machine has no GPU and falls back to a software rasteriser, so any frame-rate
+figure it produces is meaningless. That measurement has to come from real hardware.
+
+**What reverses it.** `git checkout oak-engraved-v1` — the line-engraved version is tagged,
+gate-clean and complete, and the branch that carries it (`oak-scroll`, PR #1) is untouched by this
+work.
+
+---
+
 ## 2026-07-28 · Vendored three.js (law 3)
 
 **The law.** Law 3: single dependency-free file per page. The BUSINESS-PLAN M2 amendment

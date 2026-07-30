@@ -16,10 +16,15 @@ it as mine.
 
 ## The world
 
-**The site IS the engraved assay plate, taken into three dimensions.** The studio's object is the
-proposal/assay grammar it sells with; here that grammar stops being printed and starts being
-turned. One oak, drawn entirely in line, standing in real space, travelled from canopy to roots by
-the scroll.
+**The site IS a grown oak in autumn, lit.** _(Superseded the engraved world on 2026-07-29 — see
+[DRIFT.md](DRIFT.md). The engraving is preserved, complete and gate-clean, at tag
+`oak-engraved-v1`.)_ Real surfaces, real light, gold and russet foliage over shaded bark, travelled
+from canopy to roots by the scroll.
+
+**Autumn is what makes it work.** Realistic summer foliage would put green and brown against a
+brass-on-ink site and fight it. A real oak turning is already brass. Realism and the ratified
+palette are therefore the same thing, which is why adopting realism cost the rest of the site
+nothing.
 
 **The tree is a mighty ancient spreading oak** (reference set 2026-07-29): a short massive bole
 that forks low into a candelabra, under a broad mushroom dome markedly wider than the tree is
@@ -29,9 +34,12 @@ upright conical tree would read as a poplar and carry none of the age the page i
 
 The one-line test: *you are inside the tree, and the tree is an engraving.*
 
-Two rules keep it honest and make it fast, and they are the same rule: **an engraving has no
-shading.** No surfaces, no lights, no shadow maps, no textures, no post-processing. Depth comes
-from line density and parallax, which is why it also holds 60fps on 2018 silicon.
+One rule keeps it honest and makes it affordable: **it is grown, not bought.** No model file, no
+textures, no purchased assets — every polygon comes from code and one fixed seed, so detail costs
+CPU at load rather than bytes over the wire, and the page's claim to have nothing bought in stays
+true. No shadow maps and nothing transparent either: alpha-blended foliage is the one thing 2018
+iPad silicon cannot afford, so a leaf's shape is its geometry. All bark is one merged mesh; all
+45,000 leaves are one instanced draw call; the six jays are three more.
 
 **Three forces shape every step of growth**, and the dome is their consequence rather than a mask
 applied over a cone: thin wood reaches for light, heavy wood settles under its own weight, and the

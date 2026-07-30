@@ -11,184 +11,190 @@
        claim in the ledger stays literally true;
      · the motion is distance-mapped, which is what §5.2 asks of scrub work.
 
-   Drawn in line like the oak, because they live in the same engraving. The one
-   colour that isn't brass on this whole site is the jay's blue, and it is earned:
-   they are blue jays. Muted to sit with the metal rather than shout over it.
+   Modelled and lit like the tree: solid body, solid wings, no textures. All six
+   birds cost THREE draw calls, not eighteen — body, left wing and right wing are
+   each one instanced mesh, and the flap is a per-instance matrix rather than a
+   geometry rewrite.
+
+   Blue is the only colour on this site that isn't autumn or bark, and it is
+   earned: they are blue jays.
    ───────────────────────────────────────────────────────────────────────────── */
 
 import * as THREE from '../vendor/three.module.min.js';
 
-const BLUE  = new THREE.Color(0x8CAFD2);   // mantle, wing, crest
-const PALE  = new THREE.Color(0xDCE3EA);   // throat and belly
-const SLATE = new THREE.Color(0x5E7591);   // tail bars, primaries
+const BLUE  = new THREE.Color(0x5C86BE);   // mantle, wing, crest
+const PALE  = new THREE.Color(0xD7DEE6);   // throat and belly
+const SLATE = new THREE.Color(0x33507A);   // primaries, tail bars
+const BILL  = new THREE.Color(0x24282E);
 
-/* A jay in line. Local axes: +Z is the way it's going, +Y is up, +X is its left.
-   Wing vertices are kept in one contiguous block so the beat can be applied by
-   rewriting just that slice — one object per bird, so one draw call per bird. */
-function jayGeometry() {
-  const pos = [], col = [];
-  const seg = (a, b, ca, cb) => {
-    pos.push(a[0], a[1], a[2], b[0], b[1], b[2]);
-    col.push(ca.r, ca.g, ca.b, cb.r, cb.g, cb.b);
+/* ── the body ──
+   A swept tube along +Z with a head bulge, a bill, a crest and a fanned tail.
+   Local axes: +Z is the way it's going, +Y is up. */
+function bodyGeometry() {
+  const pos = [], nor = [], col = [];
+  const tri = (a, b, c, ca, cb, cc) => {
+    const ax = b[0] - a[0], ay = b[1] - a[1], az = b[2] - a[2];
+    const bx = c[0] - a[0], by = c[1] - a[1], bz = c[2] - a[2];
+    let nx = ay * bz - az * by, ny = az * bx - ax * bz, nz = ax * by - ay * bx;
+    const l = Math.hypot(nx, ny, nz) || 1; nx /= l; ny /= l; nz /= l;
+    for (const [p, cc2] of [[a, ca], [b, cb], [c, cc]]) {
+      pos.push(p[0], p[1], p[2]); nor.push(nx, ny, nz); col.push(cc2.r, cc2.g, cc2.b);
+    }
   };
 
-  // ── body: five longitudinal rails over a fusiform profile ──
-  const RINGS = 9;
-  const profile = (t) => 0.115 * Math.sin(Math.pow(t, 0.62) * Math.PI) + 0.016;
-  const zAt = (t) => -0.42 + t * 0.78;
-  for (let r = 0; r < 5; r++) {
-    const phase = (r / 5) * Math.PI * 2;
-    for (let i = 0; i < RINGS - 1; i++) {
-      const t0 = i / (RINGS - 1), t1 = (i + 1) / (RINGS - 1);
-      const r0 = profile(t0), r1 = profile(t1);
-      // underside pale, back blue — the bird's own two-tone, no shading needed
-      const tone = Math.sin(phase) < -0.25 ? PALE : BLUE;
-      seg([Math.cos(phase) * r0, Math.sin(phase) * r0, zAt(t0)],
-          [Math.cos(phase) * r1, Math.sin(phase) * r1, zAt(t1)], tone, tone);
+  const RAD = 7, N = 14;
+  // fusiform with a head: a body bulge, a slight neck, then a rounded skull
+  const profile = (t) => {
+    const body = 0.115 * Math.sin(Math.pow(Math.min(1, t / 0.78), 0.62) * Math.PI);
+    const head = 0.072 * Math.exp(-Math.pow((t - 0.90) / 0.085, 2));
+    return Math.max(0.012, body * 0.92 + head);
+  };
+  const zAt = (t) => -0.44 + t * 0.90;
+
+  const rings = [];
+  for (let i = 0; i <= N; i++) {
+    const t = i / N, r = profile(t), ring = [];
+    for (let k = 0; k < RAD; k++) {
+      const ph = (k / RAD) * Math.PI * 2;
+      ring.push([Math.cos(ph) * r, Math.sin(ph) * r * 0.92, zAt(t)]);
+    }
+    rings.push(ring);
+  }
+  for (let i = 0; i < N; i++) {
+    for (let k = 0; k < RAD; k++) {
+      const k2 = (k + 1) % RAD;
+      const A = rings[i][k], B = rings[i][k2], C = rings[i + 1][k2], D = rings[i + 1][k];
+      // a jay is blue above and pale beneath; the seam is the flank
+      const tone = (p) => (p[1] > 0.012 ? BLUE : p[1] < -0.02 ? PALE : BLUE);
+      tri(A, B, C, tone(A), tone(B), tone(C));
+      tri(A, C, D, tone(A), tone(C), tone(D));
     }
   }
 
-  // ── head, beak, and the crest that makes it a jay and not a bluebird ──
-  for (let i = 0; i < 10; i++) {
-    const a = (i / 10) * Math.PI * 2, a2 = ((i + 1) / 10) * Math.PI * 2, rr = 0.075;
-    seg([Math.cos(a) * rr, Math.sin(a) * rr + 0.03, 0.34],
-        [Math.cos(a2) * rr, Math.sin(a2) * rr + 0.03, 0.34], BLUE, BLUE);
+  // bill
+  const bt = [0, 0.005, 0.53];
+  for (let k = 0; k < 5; k++) {
+    const ph = (k / 5) * Math.PI * 2, ph2 = ((k + 1) / 5) * Math.PI * 2, r = 0.028;
+    tri([Math.cos(ph) * r, Math.sin(ph) * r + 0.01, 0.45],
+        [Math.cos(ph2) * r, Math.sin(ph2) * r + 0.01, 0.45], bt, BILL, BILL, BILL);
   }
-  seg([0, 0.01, 0.40], [0, -0.005, 0.50], SLATE, SLATE);          // beak
-  seg([0.02, 0.10, 0.30], [0.03, 0.19, 0.22], BLUE, BLUE);        // crest
-  seg([0, 0.105, 0.31], [0, 0.205, 0.24], BLUE, BLUE);
-  seg([-0.02, 0.10, 0.30], [-0.03, 0.19, 0.22], BLUE, BLUE);
-  seg([0.055, 0.02, 0.30], [0.075, 0.0, 0.24], SLATE, SLATE);     // the necklace
-  seg([-0.055, 0.02, 0.30], [-0.075, 0.0, 0.24], SLATE, SLATE);
-
-  // ── tail: long, fanned, barred. A jay's tail is half the bird. ──
+  // crest: three small blades off the crown of the head
+  for (let i = 0; i < 3; i++) {
+    const x = (i - 1) * 0.028;
+    tri([x - 0.016, 0.055, 0.40], [x + 0.016, 0.055, 0.40], [x, 0.175 - Math.abs(i - 1) * 0.03, 0.33],
+        BLUE, BLUE, SLATE);
+  }
+  // tail: five flat feathers, fanned and barred
   for (let i = 0; i < 5; i++) {
-    const spread = (i - 2) * 0.035;
-    seg([spread * 0.4, 0.01, -0.40], [spread, 0.02, -0.98], BLUE, SLATE);
-  }
-  for (let i = 0; i < 3; i++) {                                    // cross bars
-    const z = -0.55 - i * 0.14, w = 0.055 + i * 0.02;
-    seg([-w, 0.015, z], [w, 0.015, z], SLATE, SLATE);
-  }
-
-  const wingStart = pos.length / 3;   // where the beating part begins
-
-  /* ── wings ──
-     Drawn as an OUTLINE first — shoulder, wrist, tip, then back along the
-     trailing edge — with feathers laid inside it. Chords radiating from a single
-     shoulder point (the obvious way) draw a spike, not a wing: the membrane needs
-     a leading edge that runs forward of the arm and a trailing edge behind it. */
-  for (const side of [1, -1]) {
-    const S  = [side * 0.075, 0.05,  0.07];    // shoulder
-    const W  = [side * 0.30,  0.085, 0.13];    // wrist, carried forward and up
-    const T  = [side * 0.66,  0.055, 0.00];    // tip
-    const TO = [side * 0.52,  0.02, -0.20];    // trailing, outboard
-    const TI = [side * 0.13,  0.015,-0.19];    // trailing, inboard
-
-    seg(S, W, BLUE, BLUE);                     // leading edge, inner
-    seg(W, T, BLUE, BLUE);                     // leading edge, outer
-    seg(T, TO, SLATE, SLATE);                  // the tip's own edge
-    seg(TO, TI, SLATE, SLATE);                 // trailing edge
-    seg(TI, S, BLUE, BLUE);                    // closed at the body
-    seg(S, T, BLUE, BLUE);                     // the arm, read through the membrane
-
-    // primaries: from the outer leading edge back past the tip
-    for (let f = 0; f < 5; f++) {
-      const k = f / 4;
-      const from = [W[0] + (T[0] - W[0]) * k, W[1] + (T[1] - W[1]) * k, W[2] + (T[2] - W[2]) * k];
-      const to   = [TO[0] + (T[0] - TO[0]) * (1 - k * 0.55),
-                    TO[1] + (T[1] - TO[1]) * (1 - k * 0.55),
-                    TO[2] + (T[2] - TO[2]) * (1 - k * 0.55) - 0.05 * (1 - k)];
-      seg(from, to, BLUE, SLATE);
-    }
-    // secondaries: the inner half, shorter and squarer
-    for (let f = 0; f < 4; f++) {
-      const k = f / 3;
-      const from = [S[0] + (W[0] - S[0]) * k, S[1] + (W[1] - S[1]) * k, S[2] + (W[2] - S[2]) * k];
-      const to   = [TI[0] + (TO[0] - TI[0]) * k, TI[1] + (TO[1] - TI[1]) * k, TI[2] + (TO[2] - TI[2]) * k];
-      seg(from, to, BLUE, SLATE);
-    }
-    // the white wing-bar a jay is known by, read as two ticks across the coverts
-    seg([side * 0.22, 0.05, -0.02], [side * 0.36, 0.035, -0.06], PALE, PALE);
-    seg([side * 0.30, 0.045, -0.09], [side * 0.44, 0.03, -0.13], PALE, PALE);
+    const s0 = (i - 2.5) * 0.030, s1 = (i - 1.5) * 0.030;
+    const o0 = (i - 2.5) * 0.075, o1 = (i - 1.5) * 0.075;
+    tri([s0, 0.005, -0.40], [s1, 0.005, -0.40], [o1, 0.02, -1.02], BLUE, BLUE, SLATE);
+    tri([s0, 0.005, -0.40], [o1, 0.02, -1.02], [o0, 0.02, -1.02], BLUE, SLATE, SLATE);
   }
 
   const g = new THREE.BufferGeometry();
-  const position = new THREE.Float32BufferAttribute(pos, 3);
-  g.setAttribute('position', position);
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
   g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
-  return { geometry: g, wingStart, rest: Float32Array.from(pos) };
+  return g;
 }
 
-/* One shared cut, reused by every bird: the geometry is cloned per jay only
-   because each one's wings are at a different point in the beat. */
+/* ── a wing ──
+   Origin AT THE SHOULDER so the beat is a rotation about the local Z axis, and
+   built with a real leading edge, wrist and trailing edge — a fan of chords from
+   one point draws a spike, not a wing. `side` is +1 for the bird's left. */
+function wingGeometry(side) {
+  const pos = [], nor = [], col = [];
+  const tri = (a, b, c, ca, cb, cc) => {
+    const ax = b[0] - a[0], ay = b[1] - a[1], az = b[2] - a[2];
+    const bx = c[0] - a[0], by = c[1] - a[1], bz = c[2] - a[2];
+    let nx = ay * bz - az * by, ny = az * bx - ax * bz, nz = ax * by - ay * bx;
+    const l = Math.hypot(nx, ny, nz) || 1;
+    for (const [p, cc2] of [[a, ca], [b, cb], [c, cc]]) {
+      pos.push(p[0], p[1], p[2]); nor.push(nx / l, ny / l, nz / l); col.push(cc2.r, cc2.g, cc2.b);
+    }
+  };
+  const S  = [0, 0, 0];
+  const W  = [side * 0.26, 0.035, 0.085];
+  const T  = [side * 0.64, 0.010, -0.055];
+  const TO = [side * 0.48, -0.010, -0.26];
+  const TI = [side * 0.07, -0.005, -0.23];
+  if (side > 0) {
+    tri(S, W, T, BLUE, BLUE, SLATE);
+    tri(S, T, TO, BLUE, SLATE, SLATE);
+    tri(S, TO, TI, BLUE, SLATE, PALE);
+  } else {                                   // wind the other way so faces agree
+    tri(S, T, W, BLUE, SLATE, BLUE);
+    tri(S, TO, T, BLUE, SLATE, SLATE);
+    tri(S, TI, TO, BLUE, PALE, SLATE);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  return g;
+}
+
 export function makeJays(anchors) {
-  const template = jayGeometry();
   const group = new THREE.Group();
-  const material = new THREE.LineBasicMaterial({
-    vertexColors: true, transparent: true, opacity: 0.85,
-  });
+  const mat = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
+  const n = anchors.length;
 
-  const birds = anchors.map((a) => {
-    const geometry = template.geometry.clone();
-    const mesh = new THREE.LineSegments(geometry, material);
-    const holder = new THREE.Object3D();
-    holder.add(mesh);
-    group.add(holder);
-    return {
-      holder, mesh,
-      position: geometry.getAttribute('position'),
-      anchor: a.anchor, heading: a.heading, up: a.up,
-      at: a.at, travel: a.travel, beats: a.beats, scale: a.scale,
-    };
-  });
+  const body = new THREE.InstancedMesh(bodyGeometry(), mat, n);
+  const wingL = new THREE.InstancedMesh(wingGeometry(1), mat, n);
+  const wingR = new THREE.InstancedMesh(wingGeometry(-1), mat, n);
+  for (const m of [body, wingL, wingR]) { m.frustumCulled = false; group.add(m); }
 
-  const M = new THREE.Matrix4();
+  const SHOULDER = new THREE.Vector3(0, 0.045, 0.07);
+
+  const M = new THREE.Matrix4(), Mw = new THREE.Matrix4(), Rot = new THREE.Matrix4();
+  const T = new THREE.Matrix4(), Tb = new THREE.Matrix4();
+  const q = new THREE.Quaternion(), sc = new THREE.Vector3();
   const right = new THREE.Vector3(), fwd = new THREE.Vector3(), up = new THREE.Vector3();
-  const p = new THREE.Vector3();
+  const p = new THREE.Vector3(), sh = new THREE.Vector3();
 
   function update(progress) {
-    for (const b of birds) {
+    for (let i = 0; i < n; i++) {
+      const b = anchors[i];
       // where it is: distance along its own heading from the encounter point
       const d = (progress - b.at) * b.travel;
       p.copy(b.anchor).addScaledVector(b.heading, d);
-      b.holder.position.copy(p);
-      b.holder.scale.setScalar(b.scale);
 
       // the beat: phase is distance-mapped, so reversing scroll reverses the wings
       const phase = progress * b.beats * Math.PI * 2;
-      const flap = Math.sin(phase) * 0.85;            // radians, up-and-down
-      const bank = Math.cos(phase) * 0.13;            // a little roll into the beat
+      const flap = Math.sin(phase) * 0.95;
+      const bank = Math.cos(phase) * 0.14;
 
-      // orientation from an explicit basis — no ambiguity about which way lookAt
-      // points a non-camera object
       fwd.copy(b.heading).normalize();
       right.crossVectors(b.up, fwd).normalize();
       up.crossVectors(fwd, right).normalize();
       M.makeBasis(right, up, fwd);
-      b.holder.quaternion.setFromRotationMatrix(M);
-      b.holder.rotateZ(bank);
+      q.setFromRotationMatrix(M);
+      q.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), bank));
+      sc.setScalar(b.scale);
+      M.compose(p, q, sc);
+      body.setMatrixAt(i, M);
 
-      // rewrite only the wing slice, rotating each side about the fore-aft axis
-      const arr = b.position.array, rest = template.rest;
-      const c = Math.cos(flap), s = Math.sin(flap);
-      for (let i = template.wingStart * 3; i < rest.length; i += 3) {
-        const x = rest[i], y = rest[i + 1];
-        const sign = x >= 0 ? 1 : -1;                 // wings mirror each other
-        const cc = c, ss = s * sign;
-        arr[i]     = x * cc - y * ss;
-        arr[i + 1] = x * ss + y * cc;
-        arr[i + 2] = rest[i + 2];
-      }
-      b.position.needsUpdate = true;
+      // each wing pivots at its own shoulder, in the bird's local frame
+      sh.copy(SHOULDER);
+      Rot.makeRotationZ(flap);
+      Tb.makeTranslation(sh.x, sh.y, sh.z);
+      T.makeTranslation(-0, 0, 0);
+      Mw.copy(M).multiply(Tb).multiply(Rot);
+      wingL.setMatrixAt(i, Mw);
+      Rot.makeRotationZ(-flap);
+      Mw.copy(M).multiply(Tb).multiply(Rot);
+      wingR.setMatrixAt(i, Mw);
     }
+    body.instanceMatrix.needsUpdate = true;
+    wingL.instanceMatrix.needsUpdate = true;
+    wingR.instanceMatrix.needsUpdate = true;
   }
 
   function dispose() {
-    for (const b of birds) b.mesh.geometry.dispose();
-    template.geometry.dispose();
-    material.dispose();
+    for (const m of [body, wingL, wingR]) { m.geometry.dispose(); m.dispose(); }
+    mat.dispose();
   }
 
-  return { group, update, dispose, count: birds.length };
+  return { group, update, dispose, count: n, draws: 3 };
 }
