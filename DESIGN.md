@@ -132,6 +132,26 @@ its own wings; the ledger reports the true scene total, not the oak's single cal
    bounded parallax (≤ a few world units). Nothing is reachable only by hovering.
 6. **Vendored, never CDN.** three.js (MIT) and both faces (OFL) are committed with their licences.
 
+## Evidence practice (from 2026-07-30)
+
+Every WebGL capture for this tenant goes through `tools/gpu-evidence.cjs`, which runs on
+merritt-studio's `lib/gpu-stage.cjs` and **asserts the renderer** — a run either produces
+`D3D12 (NVIDIA T1000)` frames or throws with the actual renderer string. Captures made before
+this date were software-rendered or static-fallback and have been replaced.
+
+- `node tools/gpu-evidence.cjs` — three viewports × six beats into `library/evidence/`, plus
+  `RENDERER.txt` recording the asserted renderer, the ledger and the width-law numbers.
+- `node tools/gpu-evidence.cjs --fps` — **relative only.** A WSL→d3d12→ANGLE figure is valid
+  as before/after on this box and is never an acceptance number. A human on the real device is
+  the acceptance path.
+- Headful-under-Xvfb is the only route to the GPU here; headless can never reach it. Do not
+  hand-roll flags — see `merritt-studio/docs/GPU-WEBGL.md`.
+
+Two things measurement caught that the eye had signed off on: the shoreline was rendering at
+0.12 albedo (near-black under any light) and the "half green" foliage measured **0% green** on
+screen because instance tint multiplies the colour map, so a green tint over a gold map is
+olive-brown. Both were invisible to me until sampled.
+
 ## Payload budget
 
 207 kB over the wire (§5.5 allows 300): three.js 164 · fonts 23 · page 11 · oak 8. If a future

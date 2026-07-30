@@ -141,8 +141,15 @@
   .btn-line{border:1px solid var(--brass);color:var(--brass-lt)}
   .btn-line:hover,.btn-line:focus-visible{background:rgba(176,141,74,.14);border-color:var(--brass-lt)}
 
+  /* ── the vista: the reveal's own screen. Without a beat here the scroll ends on
+        an opaque footer and the payoff shot has nowhere to be seen. ── */
+  .vista{min-height:100vh;min-height:100svh;display:flex;align-items:flex-end;padding-bottom:12vh}
+  .vista-line{font-family:var(--display);font-size:clamp(24px,3.6vw,44px);color:var(--paper);line-height:1.2;text-wrap:balance;
+    text-shadow:0 2px 24px rgba(20,10,6,.75)}
+  .vista-sub{margin-top:14px;font-size:15px;color:#F0DCC8;max-width:46ch;text-shadow:0 1px 14px rgba(20,10,6,.8)}
+
   /* ── colophon ── */
-  footer{position:relative;z-index:2;background:var(--field-deep);border-top:1px solid var(--rule);padding:clamp(48px,8vh,80px) 0 calc(clamp(48px,8vh,80px) + env(safe-area-inset-bottom))}
+  footer{position:relative;z-index:2;background:rgba(19,21,25,.82);border-top:1px solid var(--rule);padding:clamp(48px,8vh,80px) 0 calc(clamp(48px,8vh,80px) + env(safe-area-inset-bottom))}
   .colophon{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:clamp(22px,4vw,44px)}
   .colophon h3{font-size:13px;letter-spacing:.2em;text-indent:.2em;text-transform:uppercase;color:var(--brass);font-weight:400}
   .colophon p{margin-top:10px;font-size:15px;color:var(--on-field-dim)}
@@ -356,6 +363,13 @@
     </div>
   </section>
 
+  <section class="vista" id="vista">
+    <div class="wrap">
+      <p class="vista-line">Alameda &middot; Oakland &middot; the lake we are named for.</p>
+      <p class="vista-sub">Merritt Digital builds on this side of the bay.</p>
+    </div>
+  </section>
+
 </main>
 
 <footer>
@@ -388,6 +402,7 @@
     <a href="#branches" data-nav="branches">What this page is doing<span class="depth">01</span></a>
     <a href="#trunk" data-nav="trunk">How we work<span class="depth">02</span></a>
     <a href="#roots" data-nav="roots">What it costs<span class="depth">03</span></a>
+    <a href="#vista" data-nav="vista">The view from here<span class="depth">04</span></a>
     <div class="out"><a href="pricing.html">The full rate sheet<span class="depth" aria-hidden="true">&rarr;</span></a></div>
   </nav>
   <button class="acorn" id="acorn" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open the menu">

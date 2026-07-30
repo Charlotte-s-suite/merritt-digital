@@ -134,14 +134,14 @@ export function leafTextures() {
   const rnd = noiseField(0x1234567);
 
   bladePath(x, W, H);
-  x.fillStyle = '#C89A3E';
+  x.fillStyle = '#D2CEC2';                 // near-neutral: the instance supplies the hue
   x.fill();
 
   x.save();
   bladePath(x, W, H);
   x.clip();                                            // nothing escapes the blade
 
-  x.strokeStyle = 'rgba(118,80,28,0.50)';
+  x.strokeStyle = 'rgba(92,88,78,0.42)';
   x.lineWidth = 2.6;
   x.beginPath(); x.moveTo(W / 2, 8); x.lineTo(W / 2, H - 8); x.stroke();
   x.lineWidth = 1.1;
@@ -154,7 +154,7 @@ export function leafTextures() {
     }
   }
   for (let i = 0; i < 260; i++) {                      // turning blotches
-    x.fillStyle = rnd() > 0.5 ? 'rgba(148,74,24,0.22)' : 'rgba(216,182,102,0.20)';
+    x.fillStyle = rnd() > 0.5 ? 'rgba(86,82,72,0.16)' : 'rgba(246,244,238,0.16)';
     x.beginPath(); x.arc(rnd() * W, rnd() * H, 2 + rnd() * 8, 0, 6.3); x.fill();
   }
   x.restore();
@@ -204,15 +204,19 @@ export function groundTexture() {
   const W = 512, H = 512;
   const { c, x } = surface(W, H);
   const rnd = noiseField(0xA11CE);
-  x.fillStyle = '#3B3A2C';
+  x.fillStyle = '#9C9377';                     // dry path and grass, not wet asphalt
   x.fillRect(0, 0, W, H);
-  for (let i = 0; i < 9000; i++) {
+  for (let i = 0; i < 11000; i++) {
     const g = rnd();
-    x.fillStyle = g > 0.62 ? `rgba(92,96,58,${0.10 + rnd() * 0.35})`
-      : g > 0.3 ? `rgba(58,52,38,${0.10 + rnd() * 0.3})`
-      : `rgba(120,112,92,${0.05 + rnd() * 0.2})`;
+    x.fillStyle = g > 0.60 ? `rgba(140,150,92,${0.12 + rnd() * 0.40})`    // grass
+      : g > 0.30 ? `rgba(120,108,86,${0.10 + rnd() * 0.30})`              // dirt
+      : `rgba(196,186,158,${0.08 + rnd() * 0.26})`;                       // grit
     x.fillRect(rnd() * W, rnd() * H, 1 + rnd() * 4, 1 + rnd() * 4);
   }
+  // the lakeside path, a pale band worn along the shore
+  x.strokeStyle = 'rgba(206,196,172,0.5)';
+  x.lineWidth = 26;
+  x.beginPath(); x.moveTo(0, H * 0.34); x.bezierCurveTo(W*0.3, H*0.28, W*0.7, H*0.42, W, H*0.36); x.stroke();
   return finish(c, 40, 40, true);
 }
 
@@ -222,7 +226,7 @@ export function soilTexture() {
   const W = 512, H = 512;
   const { c, x } = surface(W, H);
   const rnd = noiseField(0x50117);
-  x.fillStyle = '#2A2018';
+  x.fillStyle = '#6A5A46';
   x.fillRect(0, 0, W, H);
   for (let band = 0; band < 26; band++) {                 // strata
     const y = (band / 26) * H, h = H / 26 + 2;

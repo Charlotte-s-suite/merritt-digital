@@ -103,7 +103,7 @@ function shore() {
   g.computeVertexNormals();
   g.computeBoundingSphere();
   const m = new THREE.MeshStandardMaterial({
-    map: groundTexture(), roughness: 0.94, metalness: 0.0, color: 0x93876A,
+    map: groundTexture(), roughness: 0.94, metalness: 0.0,
   });
   const mesh = new THREE.Mesh(g, m);
   mesh.position.y = GROUND_Y;
@@ -120,13 +120,13 @@ function soil() {
   const tex = soilTexture();
   const wall = new THREE.Mesh(
     new THREE.CylinderGeometry(56, 44, 46, 40, 1, true),
-    new THREE.MeshStandardMaterial({ map: tex, roughness: 0.98, side: THREE.BackSide, color: 0x6B5B48 })
+    new THREE.MeshStandardMaterial({ map: tex, roughness: 0.98, side: THREE.BackSide })
   );
   wall.position.set(0, GROUND_Y - 23, 30);
   group.add(wall);
   const floor = new THREE.Mesh(
     new THREE.CircleGeometry(44, 32),
-    new THREE.MeshStandardMaterial({ map: tex, roughness: 0.98, color: 0x4A3E30 })
+    new THREE.MeshStandardMaterial({ map: tex, roughness: 0.98 })
   );
   floor.rotateX(-Math.PI / 2);
   floor.position.set(0, GROUND_Y - 46, 30);
@@ -252,8 +252,8 @@ export function installEnvironment(renderer, scene, skyMesh) {
 function bayBridge() {
   const group = new THREE.Group();
   const dark = new THREE.MeshStandardMaterial({ color: 0x3A2C3E, roughness: 0.9, metalness: 0.05 });
-  const DIST = -1180, SPAN = 700, DECK_Y = GROUND_Y + 24, TOWER_H = 132;
-  const CX = -980;                       // west of downtown, on the horizon
+  const DIST = -1700, SPAN = 900, DECK_Y = GROUND_Y + 30, TOWER_H = 170;
+  const CX = 300;                        // beyond downtown, inside the reveal's frame
 
   const pieces = [];
   // the deck, running west to east
@@ -329,7 +329,7 @@ export function makeScene(scene) {
   scene.add(group);
 
   // haze: thick enough to sink the skyline, thin enough to leave the oak crisp
-  scene.fog = new THREE.FogExp2(0xD59A72, 0.00075);  // warm haze, thin enough to see the bridge
+  scene.fog = new THREE.FogExp2(0xD59A72, 0.00050);  // warm haze, thin enough to see the bridge
 
   return {
     group,

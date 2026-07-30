@@ -81,8 +81,8 @@ function growOak(seed) {
   /* A tree half into the browning: roughly half the crown still green, half gone
      over to gold and russet. Schyler, 2026-07-29. */
   const LEAF = [
-    new THREE.Color(0x5F7A2E), new THREE.Color(0x6E8A36),   // still green
-    new THREE.Color(0x7E9440), new THREE.Color(0x8A9A4A),
+    new THREE.Color(0x2C6B1A), new THREE.Color(0x357A20),   // still green, deep
+    new THREE.Color(0x449028), new THREE.Color(0x54A032),
     new THREE.Color(0xD8A94C), new THREE.Color(0xC98A34),   // turning
     new THREE.Color(0xB06A28), new THREE.Color(0x8C4E20),
     new THREE.Color(0xE0C273),
@@ -371,11 +371,12 @@ function growOak(seed) {
    ends in the roots.) */
 const STATIONS = [
   { t: 0.00, y:  22, dist:  20, rot: 0.00, look:  19, off:  0 },  // in the crown
-  { t: 0.34, y:  15, dist:  58, rot: 1.30, look:  12, off: 14 },  // the spread
-  { t: 0.62, y:   4, dist:  26, rot: 2.60, look:   6, off: 12 },  // the bole
-  { t: 0.78, y:-1.4, dist:  17, rot: 3.55, look:   3, off:  7 },  // ground contact
-  { t: 0.86, y:   7, dist:  34, rot: 4.15, look:   8, off:  5 },  // the rebound
-  { t: 1.00, y:  46, dist: 185, rot: 5.30, look:  12, off:  0 },  // the whole place
+  { t: 0.30, y:  15, dist:  58, rot: 1.30, look:  12, off: 14 },  // the spread
+  { t: 0.55, y:   4, dist:  26, rot: 2.60, look:   6, off: 12 },  // the bole
+  { t: 0.68, y:-1.4, dist:  17, rot: 3.55, look:   3, off:  7 },  // ground contact
+  { t: 0.76, y:   7, dist:  34, rot: 4.15, look:   8, off:  5 },  // the rebound
+  { t: 0.90, y:  34, dist: 150, rot: 5.72, look:  14, off:  0 },  // the whole place
+  { t: 1.00, y:  34, dist: 150, rot: 5.86, look:  14, off:  0 },  // held through the footer
 ];
 
 function station(t) {
@@ -461,7 +462,7 @@ export function mountOak(canvas, opts = {}) {
   });
   renderer.setClearAlpha(0);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;   // a tone curve, not a chain
-  renderer.toneMappingExposure = 1.35;
+  renderer.toneMappingExposure = 1.2;   // fewer pixels riding the ACES shoulder
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
@@ -471,17 +472,21 @@ export function mountOak(canvas, opts = {}) {
   /* A low western sun that actually casts. Shadows are the single biggest reason a
      lit scene reads as real rather than as a diagram, so they earn their one map —
      tightly framed on the tree, 2048, soft. */
-  const sun = new THREE.DirectionalLight(0xFFB765, 4.4);   // low, gold, golden hour
-  sun.position.set(-160, 34, 40);          // very low in the west
+  const sun = new THREE.DirectionalLight(0xFFDCAE, 4.0);   // warm, but not so orange it erases hue
+  sun.position.set(-150, 78, 55);          // low in the west, high enough to model the crown
   sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
-  sun.shadow.camera.left = -46; sun.shadow.camera.right = 46;
-  sun.shadow.camera.top = 46; sun.shadow.camera.bottom = -46;
-  sun.shadow.camera.near = 1; sun.shadow.camera.far = 220;
+  sun.shadow.mapSize.set(4096, 4096);   // bigger frustum needs the resolution back
+  /* The frustum has to cover every surface that RECEIVES shadow, not just the tree.
+     At +/-46 the shoreline beyond it sampled the clamped edge of the depth map and
+     came back shadowed, which is why the whole foreground rendered near-black. */
+  sun.shadow.camera.left = -170; sun.shadow.camera.right = 170;
+  sun.shadow.camera.top = 170; sun.shadow.camera.bottom = -170;
+  sun.shadow.camera.near = 1; sun.shadow.camera.far = 460;
   sun.shadow.bias = -0.0006;
   sun.shadow.normalBias = 0.03;
   scene.add(sun);
-  scene.add(new THREE.HemisphereLight(0x8C6BA8, 0x3A2A20, 1.25));   // purple sky, warm bounce
+  scene.add(new THREE.HemisphereLight(0xA88BC4, 0x6A4A32, 2.0));    // purple sky, warm bounce
+  scene.add(new THREE.AmbientLight(0x6A5A70, 0.5));                 // keeps the shadows from going to pitch
 
   const place = makeScene(scene);
   const envRT = installEnvironment(renderer, scene, place.sky);

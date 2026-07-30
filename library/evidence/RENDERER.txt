@@ -1,0 +1,6 @@
+ANGLE (Microsoft Corporation, D3D12 (NVIDIA T1000), OpenGL 4.6)
+captured 2026-07-30T03:51:14.189Z
+ledger {"triangles":"221,358","leaves":"45,365","draws":"14","status":"Measured on your device, on this load."}
+390x844 width-law ok client=375 doc=375 body=375
+834x1112 width-law ok client=819 doc=819 body=819
+1280x900 width-law ok client=1265 doc=1265 body=1265
