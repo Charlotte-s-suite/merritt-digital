@@ -24,6 +24,8 @@
 
 import * as THREE from '../vendor/three.module.min.js';
 import { makeJays } from './jays.js';
+import { makeScene, installEnvironment } from './scene.js';
+import { barkTextures, leafTextures } from './textures.js';
 
 /* ── deterministic randomness ────────────────────────────────────────────────
    Same oak on every load and every device. A tree that reshuffles per visit is
@@ -58,18 +60,19 @@ function growOak(seed) {
      knowable, and a full buffer degrades by dropping detail rather than throwing. */
   const CAP_BARK = 600000, CAP_LEAF = 70000;
   const bPos = new Float32Array(CAP_BARK * 3), bNor = new Float32Array(CAP_BARK * 3),
-        bCol = new Float32Array(CAP_BARK * 3);
+        bCol = new Float32Array(CAP_BARK * 3), bUv = new Float32Array(CAP_BARK * 2);
   let bN = 0;                                  // bark vertices written
   const lMat = new Float32Array(CAP_LEAF * 16), lCol = new Float32Array(CAP_LEAF * 3);
   let lN = 0;                                  // leaves written
   let dropped = 0;
 
-  function vertex(px, py, pz, nx, ny, nz, c) {
+  function vertex(px, py, pz, nx, ny, nz, c, u, v) {
     if (bN >= CAP_BARK) { dropped++; return; }
-    const i3 = bN * 3;
+    const i3 = bN * 3, i2 = bN * 2;
     bPos[i3] = px; bPos[i3 + 1] = py; bPos[i3 + 2] = pz;
     bNor[i3] = nx; bNor[i3 + 1] = ny; bNor[i3 + 2] = nz;
     bCol[i3] = c.r; bCol[i3 + 1] = c.g; bCol[i3 + 2] = c.b;
+    bUv[i2] = u; bUv[i2 + 1] = v;
     bN++;
   }
 
@@ -229,9 +232,13 @@ function growOak(seed) {
           const groove = (kk) => 0.5 + 0.5 * Math.sin((kk / radial) * Math.PI * 4);
           const tone = (kk) => shade.copy(BARK_LO)
             .lerp(BARK_HI, groove(kk) * (girth > 0.7 ? 0.8 : 0.45));
-          const push = (p, n, kk) => vertex(p.x, p.y, p.z, n.x, n.y, n.z, tone(kk));
-          push(A, nA, k); push(B, nB, k2); push(C, nC, k2);
-          push(A, nA, k); push(C, nC, k2); push(D, nD, k);
+          /* u wraps the limb, v runs along it scaled by real length so the grain
+             neither stretches on long limbs nor bunches on short ones */
+          const vLen = (ri) => (ri / (rings.length - 1)) * len * 0.42;
+          const push = (p, n, kk, ri) => vertex(p.x, p.y, p.z, n.x, n.y, n.z, tone(kk),
+                                                (kk / radial) * Math.max(1, girth * 1.3), vLen(ri));
+          push(A, nA, k, i); push(B, nB, k2, i); push(C, nC, k2, i + 1);
+          push(A, nA, k, i); push(C, nC, k2, i + 1); push(D, nD, k, i + 1);
         }
       }
     }
@@ -330,6 +337,7 @@ function growOak(seed) {
       bark.setAttribute('position', new THREE.BufferAttribute(bPos.subarray(0, bN * 3), 3));
       bark.setAttribute('normal', new THREE.BufferAttribute(bNor.subarray(0, bN * 3), 3));
       bark.setAttribute('color', new THREE.BufferAttribute(bCol.subarray(0, bN * 3), 3));
+      bark.setAttribute('uv', new THREE.BufferAttribute(bUv.subarray(0, bN * 2), 2));
       bark.computeBoundingBox();
       bark.computeBoundingSphere();
       if (dropped) console.warn('oak: capacity reached, ' + dropped + ' pieces dropped');
@@ -440,29 +448,54 @@ export function mountOak(canvas, opts = {}) {
   });
   renderer.setClearAlpha(0);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;   // a tone curve, not a chain
-  renderer.toneMappingExposure = 1.25;
+  renderer.toneMappingExposure = 1.35;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   /* One low sun and a cool sky fill. No shadow maps: they are the single most
      expensive thing a scene like this can ask for, and an autumn crown modelled
      by a warm key against a cool fill reads without them. */
-  const sun = new THREE.DirectionalLight(0xFFE0B2, 3.4);
-  sun.position.set(-24, 26, 16);
+  /* A low western sun that actually casts. Shadows are the single biggest reason a
+     lit scene reads as real rather than as a diagram, so they earn their one map —
+     tightly framed on the tree, 2048, soft. */
+  const sun = new THREE.DirectionalLight(0xFFCE96, 3.6);
+  sun.position.set(-90, 52, 26);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.camera.left = -46; sun.shadow.camera.right = 46;
+  sun.shadow.camera.top = 46; sun.shadow.camera.bottom = -46;
+  sun.shadow.camera.near = 1; sun.shadow.camera.far = 220;
+  sun.shadow.bias = -0.0006;
+  sun.shadow.normalBias = 0.03;
   scene.add(sun);
-  scene.add(new THREE.HemisphereLight(0x6E82A0, 0x2A2018, 1.5));
-  scene.add(new THREE.AmbientLight(0x2E3644, 0.55));
+  scene.add(new THREE.HemisphereLight(0x7189AB, 0x2A2018, 1.15));
 
-  const barkMat = new THREE.MeshLambertMaterial({ vertexColors: true });
-  const leafMat = new THREE.MeshLambertMaterial({ side: THREE.DoubleSide });
+  const place = makeScene(scene);
+  const envRT = installEnvironment(renderer, scene, place.sky);
+
+  const barkTex = barkTextures();
+  const barkMat = new THREE.MeshStandardMaterial({
+    map: barkTex.map, roughnessMap: barkTex.roughnessMap,
+    vertexColors: true, roughness: 1.0, metalness: 0.0,
+  });
+  /* No vertexColors: instance colour tints these, and a missing geometry colour
+     attribute would zero it out (learned the hard way). alphaTest, not blending —
+     transparent foliage is the one thing old mobile GPUs cannot afford. */
+  const leafTex = leafTextures();
+  const leafMat = new THREE.MeshStandardMaterial({
+    map: leafTex.map, alphaMap: leafTex.alphaMap, alphaTest: 0.5,
+    roughness: 0.74, metalness: 0.0, side: THREE.DoubleSide,
+  });
 
   /* The leaf blade: five vertices, four triangles, folded along the midrib so the
      light finds an angle on it. Its shape IS its silhouette — no alpha, because
      alpha-blended foliage is exactly what old mobile GPUs choke on. */
+  /* Two triangles. The lobed oak silhouette now comes from the texture's alpha
+     rather than from geometry — cheaper than the four-triangle diamond AND a far
+     better shape than geometry that coarse could ever cut. */
   function leafBlade() {
-    const g = new THREE.BufferGeometry();
-    const v = [ 0, 0, 0.055,  0, 0.5, 0,  0.27, 0.04, 0,  0, -0.5, 0,  -0.27, 0.04, 0 ];
-    g.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
-    g.setIndex([0,1,2, 0,2,3, 0,3,4, 0,4,1]);
-    g.computeVertexNormals();
+    const g = new THREE.PlaneGeometry(0.62, 0.86);
+    g.translate(0, 0.16, 0);
     return g;
   }
 
@@ -500,6 +533,8 @@ export function mountOak(canvas, opts = {}) {
 
       barkMesh = new THREE.Mesh(built.bark, barkMat);
       barkMesh.frustumCulled = false;
+      barkMesh.castShadow = true;
+      barkMesh.receiveShadow = true;
       scene.add(barkMesh);
 
       leafMesh = new THREE.InstancedMesh(leafBlade(), leafMat, leafCount);
@@ -508,6 +543,8 @@ export function mountOak(canvas, opts = {}) {
       leafMesh.instanceMatrix.array.set(built.leaves.mat);
       leafMesh.instanceMatrix.needsUpdate = true;
       leafMesh.instanceColor = new THREE.InstancedBufferAttribute(built.leaves.col, 3);
+      leafMesh.castShadow = true;          // dappled shade is the whole point
+      leafMesh.receiveShadow = true;
       scene.add(leafMesh);
       cutting = false;
       invalidate();
@@ -628,6 +665,8 @@ export function mountOak(canvas, opts = {}) {
       if (jays) jays.dispose();
       if (geometry) geometry.dispose();
       if (leafMesh) leafMesh.dispose();
+      place.dispose();
+      if (envRT) envRT.dispose();
       barkMat.dispose(); leafMat.dispose(); renderer.dispose();
     },
   };
