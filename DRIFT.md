@@ -7,6 +7,54 @@ departure nobody wrote down becomes a house style by accident._
 
 ---
 
+## 2026-07-31 · The form changes: luminous LINE work, and the post-processing that requires
+
+**The ruling.** Schyler, 2026-07-31, direct: *"this looks too much like a 90s video game, before we
+go full photorealistic, let's try going back to just lines, but with full color, tones and
+environment hues. Like a vivid tron dreamstate. We want it to look cutting edge but not overly
+generated."* Two corrections in the same exchange: *"The birds are way too close to the camera"*
+and, of the ground-contact beat, *"when it hits the floor it passes through for a brief moment,
+that looks glitchy and cheap."*
+
+**What it changes.** The scene is now drawn with ONE primitive — a line segment with a colour at
+each end — from the root plate to the last twig, with the world drawn the same way. Every surface,
+the PBR material set, the shadow map, the image-based lighting and all five procedural textures are
+gone; `assets/textures.js` is deleted. Two new modules: `assets/lines.js` (the drawing engine) and
+`assets/palette.js` (the hue field).
+
+**Departures from `kit/DESIGN-STANDARD.md` §5.5, which this is the honest record of:**
+
+1. **Post-processing.** §5.5 says no post chains. There is one now: scene → half-float target →
+   bright pass → three blur levels → composite with ACES, a lens dispersion on the bloom only, a
+   vignette and a static grain. It is not decoration. Luminous line work without HDR bloom is a
+   wireframe diagram; the glow is the difference between the brief's "cutting edge" and a 1998
+   screensaver. Cost is seven fullscreen passes at half resolution and below.
+2. **Blended geometry.** §5.5 says nothing transparent, because alpha-blended foliage is what old
+   mobile GPUs choke on. Every line here is blended — but with **depth write ON**, so they are
+   sorted opaque strokes with antialiased edges rather than a transparency pile, and they are
+   *thin*: the overdraw §5.5 is protecting against is per-pixel fill from full-screen leaf quads,
+   which no longer exist.
+3. **MSAA**, on desktop only; explicitly off below 700px, where the pixels are half the size and it
+   is the single most expensive thing in the frame.
+
+**What has NOT changed.** Still zero image bytes and no model file — the payload waiver above is
+still deliberately unspent. Still grown from one fixed seed, still cut across frames, still renders
+only on change: measured at **0 page-scheduled animation frames across six consecutive idle
+seconds**, with the rig proven alive by a scroll nudge in the same run.
+
+**Also fixed under this ruling.** The jays moved from 2–4 units off the lens to 26–54 units
+down-range and became outlines rather than solids. The ground-contact beat no longer passes through
+the floor: the camera sat at y=−1.4 while the land beneath it is at about +1.0, so for a moment you
+were looking up at the world from underneath it. The station moved above the surface AND the camera
+is now clamped every frame against `landHeight()` — the same function the ground is built from, so
+the two cannot disagree.
+
+**What would reverse it.** A measured failure on Schyler's iPad Pro (A12X). The bloom chain and the
+MSAA switch are the first two things to drop, in that order; the line work itself is cheaper than
+the geometry it replaced.
+
+---
+
 ## 2026-07-29 · The §5.5 payload ceiling is waived, and image assets are permitted
 
 **The ruling.** Schyler, 2026-07-29: *"I never specified the image cost, I'm fine with using open

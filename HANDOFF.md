@@ -11,7 +11,8 @@ laws (`merritt-studio/kit/DESIGN-STANDARD.md`) or the brief (`BRIEF.md`)._
 | `origin/main` @ `284c8f0` | PR #1 squashed: the **narrow, leafless line-engraved** oak, 7,735 segments | **live** on Pages, three revisions behind |
 | `oak-scroll` @ `1b050d1` | mighty spreading engraved oak (115k segments) + line-drawn jays | pushed, unmerged, superseded |
 | tag `oak-engraved-v1` @ `d458fe9` | the engraved oak Schyler approved ("loads very smoothly") | preserved on his instruction |
-| **`oak-grown` @ `24e25f7`** | **current work.** Grown/lit oak, Lake Merritt at golden hour, jays, GPU evidence | pushed, unmerged, no PR open yet |
+| `oak-grown` @ `bcf614e` | the photoreal attempt: skinned oak, PBR, shadows, IBL, procedural textures | superseded 2026-07-31, never merged, no PR |
+| **`oak-luminous`** | **current work.** The whole scene redrawn in luminous LINES — see §8 | unmerged, no PR open yet |
 | `showcase-specimen-drawer` @ `70b302e` | client specimen plates | **out of scope permanently** (capability-only ruling); kept only for the mounted-plate grammar |
 
 Local `main` is stale at `b2bc543` — fetch before comparing. PR #1 is **MERGED**; there is no open
@@ -112,6 +113,53 @@ Harness:
 4. **The `gpu-stage.cjs` robustness PR** (§4).
 5. Shore dressing: path planting, distant trees. The lakeside path exists in the ground texture only.
 6. Payment / email / contact remain deliberately unbuilt and blocked — see `TODO.md`.
+
+## 8. The luminous-line build (current, 2026-07-31)
+
+Schyler ruled the photoreal route out — *"this looks too much like a 90s video game ... back to
+just lines, but with full color, tones and environment hues. Like a vivid tron dreamstate ...
+cutting edge but not overly generated."* Full entry and the law departures are in `DRIFT.md`.
+
+**Everything is one primitive: a line segment with a colour at each end.** No surfaces, no shading
+model, no shadow map, no textures. §3 above describes the module layout that still holds; what
+changed inside it:
+
+- `assets/lines.js` — NEW, the whole drawing engine. Screen-space fat lines (WebGL's native line
+  width is 1px everywhere that matters), per-batch perspective weight with a floor AND a ceiling,
+  atmospheric fog, and a hand-rolled bloom composer. Vendored three is the core module only —
+  there is no `examples/jsm`, so `Line2` and `UnrealBloomPass` do not exist here.
+- `assets/palette.js` — NEW. Colour is a FIELD: position and structural role decide hue and heat.
+  Five hues, one ramp, two accents. This file is the main defence against the neon-rainbow look.
+- `assets/textures.js` — DELETED, orphaned by the rewrite.
+- Growth (`growOak`) is morphologically UNCHANGED — same seed, same forces, same tree, third
+  different rendering. Keeping growth and rendering separable is what made this a two-day change
+  instead of a rebuild.
+
+Figures: 169,298 lines (90,843 of them leaves) · 16 draw calls · zero image bytes. Renderer
+asserted `ANGLE (Microsoft Corporation, D3D12 (NVIDIA T1000), OpenGL 4.6)`. Width law ok at
+390/834/1280. Slop detector `[]`. Idle cost measured at **0 page-scheduled frames over six
+consecutive still seconds**.
+
+### Gotchas paid for in THIS pass
+
+- **A material created after `resize()` never gets the viewport resolution.** `resize()` returns
+  early on every later frame, so the flock — built inside `flock()` — kept `uRes = (1,1)` forever,
+  and the shader divides by it: every wing segment expanded to the size of the screen. Anything
+  built late must be handed the resolution at construction. This one cost the most time and looked
+  like a near-plane bug.
+- **The sky is a field, not a picture.** Drawn at full value it out-lit the drawing and sat above
+  the bloom threshold, so the bloom found the whole sky and the reveal became a gold haze. It runs
+  at `uGain` 0.42, below everything that is meant to glow.
+- **Perspective line weight needs a CEILING, not just a floor.** At a blanket 4× every twig near
+  the lens drew ~3px and the canopy read as a pile of straws.
+- **Check where the sun actually IS.** `dot(forward, SUN_DIR)` put it 58° off-axis — outside a
+  28.7° half-frame — while the gold in shot was only the horizon band. Compute the bearing; do not
+  infer it from a glow.
+- **A glitter road is a reflection**, so it depends on the viewer's position, not the world origin.
+- **Full hoops around a cage of parallel rails read as a transmission pylon.** Broken arcs plus
+  rails that wander read as bark.
+- **A decorative layer must never widen the document.** A hero scrim inset past its container's
+  edges added 241px of invisible box and failed the width law at all three viewports.
 
 ## 7. Process, non-negotiable
 

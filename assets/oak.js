@@ -1,31 +1,45 @@
 /* ─────────────────────────────────────────────────────────────────────────────
-   THE GROWN OAK — Merritt Digital
+   THE LUMINOUS OAK — Merritt Digital
 
-   A mighty ancient oak with real surfaces and real light: shaded bark, tens of
-   thousands of individually modelled leaves, one directional sun and a cool sky
-   fill. Every polygon is GENERATED from code and a fixed seed — there is no
-   model file, no texture, nothing bought in — so the detail costs CPU at load
-   rather than bytes over the wire, and the page's claims about itself stay true.
+   A mighty ancient oak drawn entirely in LIGHT LINES. No surfaces, no shading
+   model, no textures, no shadow maps — one primitive, the line segment, from
+   the root plate to the last twig, with the whole world behind it drawn the
+   same way.
 
-   The oak is in AUTUMN, and that is the whole reason this works. Realistic oak
-   foliage in summer is green, which would put green and brown against a
-   brass-on-ink site and fight it. A real oak turning is already brass: gold,
-   amber, russet. Realism and the ratified palette turn out to be the same thing.
+   Why lines. The photoreal pass before this one lost, and it lost for a
+   structural reason worth writing down: procedural geometry is superb at
+   recursive branching and poor at sculpted organic surface, so every hour spent
+   skinning the tree was spent fighting the medium. But the tree was ALWAYS a
+   graph of segments — the surfaces were built from it and then thrown it away.
+   Drawing the graph directly is not a retreat to the earlier engraving; it is
+   the honest form for what this thing actually is, and it is why the detail
+   here costs a fraction of what the skinned version cost.
 
-   Constraints held (§5.5): no textures, no shadow maps, no post-processing
-   chains, opaque geometry only — alpha-blended foliage is the one thing 2018
-   iPad silicon cannot do, so leaf shape comes from geometry instead. Leaves are
-   ONE instanced draw call; all bark is ONE merged mesh. Camera work, the sliced
-   build, fail-soft and the render-on-change contract are unchanged.
+   How it holds depth without surfaces:
+     · weight follows structure — the bole is heavy, the twigs are hairlines
+     · weight also follows DISTANCE, so far wood thins and near wood is solid
+     · colour is a FIELD (palette.js), not paint: height and role decide hue
+     · everything far dissolves into the sky's own colour
+     · brightness is meaning — the hot things bloom, the mass stays dark
 
-   Morphology is unchanged from the Schyler-approved silhouette (oak-engraved-v1):
-   same growth forces, same seed, same tree — re-clothed, not re-grown.
+   Constraints held: no model file, no texture file, nothing bought in. The
+   whole tree is still grown from a few hundred lines of code and one fixed
+   number. Still cut across frames, never in one block. Still renders only on
+   change and costs nothing at rest.
+
+   Morphology is UNCHANGED from the Schyler-approved silhouette
+   (oak-engraved-v1): same growth forces, same seed, same tree. Re-drawn, not
+   re-grown — three times now, which is the point of keeping growth and
+   rendering separable.
+
+   Luminous-line direction: Schyler, 2026-07-31, direct.
    ───────────────────────────────────────────────────────────────────────────── */
 
 import * as THREE from '../vendor/three.module.min.js';
 import { makeJays } from './jays.js';
-import { makeScene, installEnvironment } from './scene.js';
-import { barkTextures, leafTextures } from './textures.js';
+import { makeLineScene } from './scene.js';
+import { lineMaterial, lineBatch, segmentWriter, makeComposer } from './lines.js';
+import { woodColor, LEAF, LEAF_W, FOG } from './palette.js';
 
 /* ── deterministic randomness ────────────────────────────────────────────────
    Same oak on every load and every device. A tree that reshuffles per visit is
@@ -39,18 +53,6 @@ function mulberry32(seed) {
   };
 }
 
-/* ── the oak ─────────────────────────────────────────────────────────────────
-   A mighty ancient oak, built to the silhouette that makes an oak an oak and not
-   a poplar: a SHORT, massive bole that forks low into a handful of huge limbs,
-   which reach out nearly level before sweeping up into a broad mushroom dome
-   markedly wider than the tree is tall. Surface roots flare out of the base.
-
-   Three forces shape every step, which is what keeps it from reading as fractal
-   scaffolding: thin wood reaches for light, heavy wood sags under its own weight,
-   and the crown envelope rolls the outermost growth over and down. The dome is a
-   consequence of those three, not a mask applied over a cone.
-
-   Reference: the spreading valley/live-oak silhouette (Schyler, 2026-07-29). */
 function growOak(seed) {
   const rand = mulberry32(seed);
   const queue = [];                     // limbs waiting to be cut
@@ -58,37 +60,8 @@ function growOak(seed) {
 
   /* Capacity is generous and fixed: this tree is deterministic, so its size is
      knowable, and a full buffer degrades by dropping detail rather than throwing. */
-  const CAP_BARK = 600000, CAP_LEAF = 70000;
-  const bPos = new Float32Array(CAP_BARK * 3), bNor = new Float32Array(CAP_BARK * 3),
-        bCol = new Float32Array(CAP_BARK * 3), bUv = new Float32Array(CAP_BARK * 2);
-  let bN = 0;                                  // bark vertices written
-  const lMat = new Float32Array(CAP_LEAF * 16), lCol = new Float32Array(CAP_LEAF * 3);
-  let lN = 0;                                  // leaves written
-  let dropped = 0;
-
-  function vertex(px, py, pz, nx, ny, nz, c, u, v) {
-    if (bN >= CAP_BARK) { dropped++; return; }
-    const i3 = bN * 3, i2 = bN * 2;
-    bPos[i3] = px; bPos[i3 + 1] = py; bPos[i3 + 2] = pz;
-    bNor[i3] = nx; bNor[i3 + 1] = ny; bNor[i3 + 2] = nz;
-    bCol[i3] = c.r; bCol[i3 + 1] = c.g; bCol[i3 + 2] = c.b;
-    bUv[i2] = u; bUv[i2 + 1] = v;
-    bN++;
-  }
-
-  const BARK_LO = new THREE.Color(0x4A3E33);   // shaded, damp, in the crevices
-  const BARK_HI = new THREE.Color(0x7A6A57);   // the raised ridges of an old bole
-  /* A tree half into the browning: roughly half the crown still green, half gone
-     over to gold and russet. Schyler, 2026-07-29. */
-  const LEAF = [
-    new THREE.Color(0x2C6B1A), new THREE.Color(0x357A20),   // still green, deep
-    new THREE.Color(0x449028), new THREE.Color(0x54A032),
-    new THREE.Color(0xD8A94C), new THREE.Color(0xC98A34),   // turning
-    new THREE.Color(0xB06A28), new THREE.Color(0x8C4E20),
-    new THREE.Color(0xE0C273),
-  ];
-  const LEAF_W = [0.16, 0.15, 0.11, 0.08,                  // 0.50 still green
-                  0.16, 0.14, 0.10, 0.05, 0.05];           // 0.50 turned
+  const wood = segmentWriter(220000);
+  const foliage = segmentWriter(130000);
 
   const GROUND = -2;
   const BOLE   = 7.0;                   // where the trunk gives out and forks
@@ -127,11 +100,18 @@ function growOak(seed) {
     d.normalize();
   }
 
-  /* Leaves along a twig. Each one is an instance: a position, an orientation that
-     faces out of the crown with a good deal of scatter, a size, and a colour off
-     the autumn ramp. Opaque geometry, so the blade's shape is its silhouette. */
-  const _n = V(), _t = V(), _x = V(), _y = V(), _p = V(), _s = V();
-  const _m = new THREE.Matrix4(), _mm = new THREE.Matrix4(), _q = new THREE.Quaternion();
+  /* ── leaves ────────────────────────────────────────────────────────────────
+     A leaf is a STROKE: the midrib, drawn in the leaf's own colour, running
+     slightly hotter toward the tip. Leaves out on the shell of the crown also
+     get two barbs, which is enough to read as a blade rather than a dash where
+     the camera is close enough to tell.
+
+     45,000 filled and lit blades became a brown mass at any distance. 45,000
+     luminous strokes at low weight build the same mass out of light, and the
+     bloom turns density into glow — which is exactly what a backlit canopy
+     does at golden hour. */
+  const _n = V(), _t = V(), _x = V(), _y = V(), _p = V(), _e = V(), _b = V();
+  const _cA = new THREE.Color(), _cB = new THREE.Color();
   function leafSpray(a, b, shell) {
     const count = 1 + (rand() > 0.55 ? 1 : 0);
     _t.subVectors(b, a);
@@ -143,34 +123,55 @@ function growOak(seed) {
       _n.y += 0.45;
       _n.x += rng(-0.7, 0.7); _n.y += rng(-0.5, 0.7); _n.z += rng(-0.7, 0.7);
       _n.normalize();
-      _x.set(_n.z, 0, -_n.x);
-      if (_x.lengthSq() < 1e-6) _x.set(1, 0, 0);
-      _x.normalize();
-      _y.crossVectors(_n, _x).normalize();
-      _m.makeBasis(_x, _y, _n);
-      _q.setFromRotationMatrix(_m);
-      if (lN >= CAP_LEAF) { dropped++; continue; }
-      _p.set(px, py, pz);
-      _s.setScalar(rng(0.30, 0.52));
-      _mm.compose(_p, _q, _s);
-      lMat.set(_mm.elements, lN * 16);
+
       // pick a tone by weight, so gold dominates and the green is a holdout
       let r = rand(), pick = 0, acc = 0;
       for (let w = 0; w < LEAF_W.length; w++) { acc += LEAF_W[w]; if (r <= acc) { pick = w; break; } }
       const c = LEAF[pick];
-      lCol[lN * 3] = c.r; lCol[lN * 3 + 1] = c.g; lCol[lN * 3 + 2] = c.b;
-      lN++;
+      /* Kept UNDER the composer's bloom threshold. A leaf is not a light. When
+         the tips ran hot every one of them bloomed, and forty thousand blooming
+         tips turned the whole crown into a cream-coloured cloud — the exact
+         wash this palette exists to avoid. Only the sun, the windows and the
+         necklace are allowed over the line. */
+      _cA.copy(c).multiplyScalar(0.50);           // base, in shade
+      _cB.copy(c).multiplyScalar(0.86);           // tip, catching the west light
+
+      /* Short, and barbed. At the first beat the camera is INSIDE the crown, so
+         a leaf is read at arm's length: a long bare stroke there is a pine
+         needle, not an oak leaf. Short midrib plus a pair of swept barbs reads
+         as a blade close up and still packs into a mass at distance. */
+      const len = rng(0.26, 0.46);
+      _p.set(px, py, pz);
+      _e.copy(_p).addScaledVector(_n, len);
+      foliage.push(_p.x, _p.y, _p.z, _e.x, _e.y, _e.z, _cA, _cB, 1.05);
+
+      if (shell > 0.30 && rand() > 0.32) {
+        _x.set(_n.z, 0, -_n.x);
+        if (_x.lengthSq() < 1e-6) _x.set(1, 0, 0);
+        _x.normalize();
+        const mid = _p.clone().addScaledVector(_n, len * 0.38);
+        const spread = len * 0.62;
+        for (const sgn of [1, -1]) {
+          // swept BACK from the midrib, which is what makes it a leaf and not a cross
+          _b.copy(mid).addScaledVector(_x, spread * sgn).addScaledVector(_n, -len * 0.10);
+          foliage.push(mid.x, mid.y, mid.z, _b.x, _b.y, _b.z, _cA, _cB, 0.9);
+        }
+      }
     }
   }
 
-  /* A limb is a tapering cage of parallel rails — the engraver's way of showing a
-     round form without shading. Big wood gets many rails and reads as a turned
-     column; twigs get one and read as a pen stroke. */
+  /* ── a limb ────────────────────────────────────────────────────────────────
+     A tapering cage of parallel RAILS with occasional hoops around it — the
+     engraver's way of showing a round form without shading, and the reason big
+     wood reads as a turned column rather than as a bundle of wires. Rail count
+     falls with girth until the finest wood is a single pen stroke.
+
+     The rails come off exactly the same parallel-transported rings the skinned
+     version used for its tube, so the form is identical — only the emission
+     changed. */
   function limb(from, dir, len, girth, depth, up, flare, taper) {
     const TAP = taper === undefined ? 0.72 : taper;
     const steps = Math.max(3, Math.round(len / 1.15));
-    const rails = girth > 3.6 ? 28 : girth > 2.4 ? 18 : girth > 1.6 ? 12 :
-                  girth > 0.95 ? 8 : girth > 0.5 ? 5 : girth > 0.2 ? 3 : 1;
     const spine = [];
     let p = from.clone();
     let d = dir.clone().normalize();
@@ -183,22 +184,31 @@ function growOak(seed) {
       p = next;
     }
 
-    /* Bark as a swept tube. The finest wood gets no tube at all — it is buried
-       in leaves, and skinning it would triple the triangle count for nothing. */
-    if (girth >= 0.30) {
-      const radial = girth > 2.6 ? 10 : girth > 1.4 ? 7 : girth > 0.7 ? 5 : 4;
+    const rails = girth > 3.6 ? 10 : girth > 2.4 ? 8 : girth > 1.6 ? 6 :
+                  girth > 0.95 ? 5 : girth > 0.5 ? 4 : girth > 0.2 ? 3 : 1;
+    // heavy wood is drawn heavily; a twig is a hairline. Weight IS the hierarchy.
+    const weight = THREE.MathUtils.clamp(0.85 + girth * 0.52, 0.85, 3.5);
+
+    if (rails === 1) {
+      // finest wood: the spine itself, one stroke, gradient along its length
+      for (const [a, b] of spine) {
+        woodColor(a.y, girth, up, _cA);
+        woodColor(b.y, girth, up, _cB);
+        wood.push(a.x, a.y, a.z, b.x, b.y, b.z, _cA, _cB, weight);
+      }
+    } else {
       const pts = [spine[0][0]];
       for (const [, b] of spine) pts.push(b);
 
       // parallel transport one reference vector along the spine, so consecutive
-      // rings share a frame and the tube has no seam or twist
+      // rings share a frame and the cage has no seam or twist
       const tan = V(), ref = V(), side = V(), lift = V();
       tan.subVectors(pts[1], pts[0]).normalize();
       ref.set(-tan.z, 0, tan.x);
       if (ref.lengthSq() < 1e-6) ref.set(1, 0, 0);
       ref.normalize();
 
-      const rings = [], norms = [], radii = [];
+      const rings = [];
       for (let i = 0; i < pts.length; i++) {
         const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)];
         tan.subVectors(b, a);
@@ -213,37 +223,47 @@ function growOak(seed) {
         const t = i / (pts.length - 1);
         const f = flare ? 1 + flare * Math.pow(1 - t, 2.6) : 1;
         const rr = Math.max(0.012, girth * (1 - t * TAP) * 0.5 * f);
-        radii.push(rr);
-        const ring = [], nrm = [];
-        for (let k = 0; k < radial; k++) {
-          // ridged bark: the radius wobbles around the ring so light catches it
-          const ph = (k / radial) * Math.PI * 2;
-          const ridge = 1 + (girth > 1.0 ? 0.055 * Math.sin(ph * 4) : 0);
-          const n = side.clone().multiplyScalar(Math.cos(ph)).addScaledVector(lift, Math.sin(ph)).normalize();
-          nrm.push(n);
-          ring.push(pts[i].clone().addScaledVector(n, rr * ridge));
+        const ring = [];
+        for (let k = 0; k < rails; k++) {
+          const ph = (k / rails) * Math.PI * 2;
+          /* Each rail WANDERS in and out along the limb rather than running
+             parallel to its neighbours. Straight evenly-spaced rails plus full
+             hoops made the bole read as a transmission pylon — an engineered
+             lattice, not bark. The second term is the wander; it is what turns
+             the cage back into a fluted old trunk. */
+          const flute = girth > 1.0
+            ? 1 + 0.09 * Math.sin(ph * 4) + 0.075 * Math.sin(i * 0.55 + k * 1.7)
+            : 1;
+          ring.push(pts[i].clone()
+            .addScaledVector(side, Math.cos(ph) * rr * flute)
+            .addScaledVector(lift, Math.sin(ph) * rr * flute));
         }
-        rings.push(ring); norms.push(nrm);
+        rings.push(ring);
       }
 
-      const shade = new THREE.Color();
       for (let i = 0; i < rings.length - 1; i++) {
-        for (let k = 0; k < radial; k++) {
-          const k2 = (k + 1) % radial;
-          const A = rings[i][k], B = rings[i][k2], C = rings[i + 1][k2], D = rings[i + 1][k];
-          const nA = norms[i][k], nB = norms[i][k2], nC = norms[i + 1][k2], nD = norms[i + 1][k];
-          // ridge/crevice tone, then two triangles per quad
-          // grooves run ALONG the limb, so the tone is a function of angle only
-          const groove = (kk) => 0.5 + 0.5 * Math.sin((kk / radial) * Math.PI * 4);
-          const tone = (kk) => shade.copy(BARK_LO)
-            .lerp(BARK_HI, groove(kk) * (girth > 0.7 ? 0.8 : 0.45));
-          /* u wraps the limb, v runs along it scaled by real length so the grain
-             neither stretches on long limbs nor bunches on short ones */
-          const vLen = (ri) => (ri / (rings.length - 1)) * len * 0.42;
-          const push = (p, n, kk, ri) => vertex(p.x, p.y, p.z, n.x, n.y, n.z, tone(kk),
-                                                (kk / radial) * Math.max(1, girth * 1.3), vLen(ri));
-          push(A, nA, k, i); push(B, nB, k2, i); push(C, nC, k2, i + 1);
-          push(A, nA, k, i); push(C, nC, k2, i + 1); push(D, nD, k, i + 1);
+        for (let k = 0; k < rails; k++) {
+          const A = rings[i][k], B = rings[i + 1][k];
+          woodColor(A.y, girth, up, _cA);
+          woodColor(B.y, girth, up, _cB);
+          /* Rails on the far side of the limb are dimmer. There is no lighting
+             model here, so this stands in for one: without it a cage reads as
+             flat and transparent instead of as a solid round column. */
+          const facing = 0.55 + 0.45 * Math.max(0, Math.cos((k / rails) * Math.PI * 2 - 2.4));
+          _cA.multiplyScalar(facing); _cB.multiplyScalar(facing);
+          wood.push(A.x, A.y, A.z, B.x, B.y, B.z, _cA, _cB, weight * (0.7 + facing * 0.4));
+        }
+        /* BROKEN hoops on structural wood: short cross-checks, never a closed
+           ring. A closed ring every few steps is precisely what read as a pylon
+           — the eye finds the repeating horizontal band before it finds the
+           tree. Staggering which arc is drawn turns the same cue into bark. */
+        if (girth > 1.0 && i % 4 === 0) {
+          for (let k = 0; k < rails; k++) {
+            if ((k + i) % 3 !== 0) continue;
+            const A = rings[i][k], B = rings[i][(k + 1) % rails];
+            woodColor(A.y, girth, up, _cA); _cA.multiplyScalar(0.45);
+            wood.push(A.x, A.y, A.z, B.x, B.y, B.z, _cA, _cA, weight * 0.5);
+          }
         }
       }
     }
@@ -260,11 +280,17 @@ function growOak(seed) {
           const twig = d.clone().applyAxisAngle(axis, rng(0.22, 1.25))
             .multiplyScalar(len * rng(0.30, 0.62));
           const end = tip.clone().add(twig);
+          // the twig itself is drawn, faintly — the crown needs its scaffolding
+          woodColor(tip.y, 0.12, true, _cA); woodColor(end.y, 0.10, true, _cB);
+          wood.push(tip.x, tip.y, tip.z, end.x, end.y, end.z, _cA, _cB, 0.85);
           leafSpray(tip, end, shell);
           if (rand() > 0.4) {
             const a2 = V(rng(-1, 1), rng(-1, 1), rng(-1, 1)).normalize();
             const t2 = twig.clone().applyAxisAngle(a2, rng(0.3, 1.1)).multiplyScalar(rng(0.5, 0.9));
-            leafSpray(end, end.clone().add(t2), shell);
+            const end2 = end.clone().add(t2);
+            woodColor(end.y, 0.10, true, _cA); woodColor(end2.y, 0.09, true, _cB);
+            wood.push(end.x, end.y, end.z, end2.x, end2.y, end2.z, _cA, _cB, 0.8);
+            leafSpray(end, end2, shell);
           }
         }
       }
@@ -295,7 +321,7 @@ function growOak(seed) {
   /* ── the bole: short, massive, flared, and it stops early ── */
   queue.push([V(0, GROUND, 0), V(0, 1, 0), BOLE - GROUND, 4.6, 0, true, 0.5, 0.18]);
 
-  /* ── the primary limbs: five of them, low and reaching out ── */
+  /* ── the primary limbs: six of them, low and reaching out ── */
   const PRIMARIES = 6;
   for (let i = 0; i < PRIMARIES; i++) {
     const az = (i / PRIMARIES) * Math.PI * 2 + rng(-0.16, 0.16);
@@ -337,47 +363,45 @@ function growOak(seed) {
       return queue.length === 0;
     },
     finish() {
-      const bark = new THREE.BufferGeometry();
-      // subarray, not copy: the data is already in its final layout
-      bark.setAttribute('position', new THREE.BufferAttribute(bPos.subarray(0, bN * 3), 3));
-      bark.setAttribute('normal', new THREE.BufferAttribute(bNor.subarray(0, bN * 3), 3));
-      bark.setAttribute('color', new THREE.BufferAttribute(bCol.subarray(0, bN * 3), 3));
-      bark.setAttribute('uv', new THREE.BufferAttribute(bUv.subarray(0, bN * 2), 2));
-      bark.computeBoundingBox();
-      bark.computeBoundingSphere();
-      if (dropped) console.warn('oak: capacity reached, ' + dropped + ' pieces dropped');
-      return {
-        bark,
-        triangles: bN / 3,
-        leaves: { mat: lMat.subarray(0, lN * 16), col: lCol.subarray(0, lN * 3), count: lN },
-      };
+      const dropped = wood.dropped + foliage.dropped;
+      if (dropped) console.warn('oak: capacity reached, ' + dropped + ' segments dropped');
+      return { wood: wood.take(1), foliage: foliage.take(2) };
     },
   };
 }
 
 /* ── the ride ────────────────────────────────────────────────────────────────
    Scroll drives a camera on a rail from the crown of the canopy down past the
-   root tips. Scroll is READ in the frame, never handled in a scroll listener —
-   that is the difference between smooth and janky on an A12X. */
-/* The ride. Station heights and distances come from the geometry's MEASURED
-   bounding box (x ∈ [-28, 27], y ∈ [-20, 29]); guessing them is how the canopy
-   camera once ended up parked in empty sky.
+   bole to the ground, off it, and out over the lake. Scroll is READ in the
+   frame, never handled in a scroll listener — that is the difference between
+   smooth and janky on an A12X.
 
-   `t` places each station along the scroll explicitly, because the last beats need
-   to be fast: the camera falls down the trunk, CLIPS the ground and rebounds off
-   it, then pulls all the way out to reveal the lake, downtown Oakland and the Bay
-   Bridge against the setting sun. Rotation never stops through any of it — `rot`
-   keeps climbing past a full turn. (Schyler, 2026-07-29: the descent no longer
-   ends in the roots.) */
+   `t` places each station along the scroll explicitly, because the last beats
+   need to be fast: the camera falls down the trunk, MEETS the ground and
+   rebounds off it, then pulls all the way out to reveal the lake, downtown
+   Oakland and the Bay Bridge against the setting sun. Rotation never stops
+   through any of it — `rot` keeps climbing past a full turn.
+
+   `ease` shapes the approach to each station. The ground beat is the reason it
+   exists: eased symmetrically, the camera drifts into the floor and back out
+   like a lift. It has to DECELERATE hard into the ground and leave fast, or the
+   bounce reads as a sink. (Schyler, 2026-07-29: the descent no longer ends in
+   the roots. Schyler, 2026-07-31: it must not pass THROUGH the ground either —
+   the camera used to sit at y=-1.4 while the land under it is at about +1.0,
+   so for a moment you were looking up from underneath the world.) */
 const STATIONS = [
-  { t: 0.00, y:  22, dist:  20, rot: 0.00, look:  19, off:  0 },  // in the crown
-  { t: 0.30, y:  15, dist:  58, rot: 1.30, look:  12, off: 14 },  // the spread
-  { t: 0.55, y:   4, dist:  26, rot: 2.60, look:   6, off: 12 },  // the bole
-  { t: 0.68, y:-1.4, dist:  17, rot: 3.55, look:   3, off:  7 },  // ground contact
-  { t: 0.76, y:   7, dist:  34, rot: 4.15, look:   8, off:  5 },  // the rebound
-  { t: 0.90, y:  34, dist: 150, rot: 5.72, look:  14, off:  0 },  // the whole place
-  { t: 1.00, y:  34, dist: 150, rot: 5.86, look:  14, off:  0 },  // held through the footer
+  { t: 0.00, y:  22,  dist:  20, rot: 0.00, look:  19, off:  0 },  // in the crown
+  { t: 0.30, y:  15,  dist:  58, rot: 1.30, look:  12, off: 14 },  // the spread
+  { t: 0.55, y:   6,  dist:  26, rot: 2.60, look:   6, off: 12 },  // the bole
+  { t: 0.68, y: 2.1,  dist:  15, rot: 3.55, look: 4.2, off:  7, ease: 'settle' },  // contact
+  { t: 0.76, y:   9,  dist:  34, rot: 4.15, look:   8, off:  5, ease: 'kick' },    // rebound
+  { t: 0.90, y:  34,  dist: 150, rot: 5.72, look:  14, off:  0 },  // the whole place
+  { t: 1.00, y:  34,  dist: 150, rot: 5.86, look:  14, off:  0 },  // held through the footer
 ];
+
+/* Clearance kept between the lens and whatever ground is under it. Below this
+   the near plane starts eating the shoreline and you see under the world. */
+const FLOOR_CLEARANCE = 1.6;
 
 function station(t) {
   const p = THREE.MathUtils.clamp(t, 0, 1);
@@ -385,9 +409,11 @@ function station(t) {
   while (i < STATIONS.length - 2 && p > STATIONS[i + 1].t) i++;
   const a = STATIONS[i], b = STATIONS[i + 1];
   const k = (p - a.t) / Math.max(1e-6, b.t - a.t);
-  // smoothstep between stations: the ride eases at each beat instead of
-  // running at constant speed through the whole tree
-  const e = k * k * (3 - 2 * k);
+  let e;
+  // the ease belongs to the station being approached
+  if (b.ease === 'settle') e = 1 - Math.pow(1 - k, 3);        // arrive slowly: a landing
+  else if (b.ease === 'kick') e = Math.pow(k, 0.55);          // leave fast: a rebound
+  else e = k * k * (3 - 2 * k);                               // otherwise ease both ends
   return {
     y:    a.y    + (b.y    - a.y)    * e,
     dist: a.dist + (b.dist - a.dist) * e,
@@ -415,39 +441,40 @@ function cameraAt(t, split) {
 }
 
 /* Anchors for the jays: each bird is given an encounter point on the camera rail,
-   sat a few units off to one side of the view, and a heading that carries it
-   across the frame. Deterministic from the same seed discipline as the oak. */
+   set well out into the scene, and a heading that carries it across the frame.
+   Deterministic from the same seed discipline as the oak.
+
+   They used to be placed 2–4 units off the lens, on the theory that proximity
+   was the only way to make a jay read against a 20-metre oak. It was, and it
+   looked it: a bird filling a third of the frame is a prop, not a bird. At this
+   range they are small, legible, and part of the place — which is what the
+   scroll-reversal gag needed all along. (Schyler, 2026-07-31: "way too close".) */
 function jayAnchors(seed, split) {
   const rand = mulberry32(seed);
   const rng = (a, b) => a + rand() * (b - a);
   const UP = new THREE.Vector3(0, 1, 0);
   const out = [];
-  const COUNT = 6;
+  const COUNT = 5;
   for (let i = 0; i < COUNT; i++) {
     // spread the encounters through the descent, skipping the very ends
-    const at = 0.07 + (i / (COUNT - 1)) * 0.68 + rng(-0.02, 0.02);
+    const at = 0.09 + (i / (COUNT - 1)) * 0.62 + rng(-0.02, 0.02);
     const { pos, target } = cameraAt(at, split);
     const fwd = target.clone().sub(pos).normalize();
     const right = new THREE.Vector3().crossVectors(fwd, UP).normalize();
     const up = new THREE.Vector3().crossVectors(right, fwd).normalize();
     const side = i % 2 ? 1 : -1;
-    // close to the lens: at true scale a jay is tiny against a 30-unit oak, so
-    // proximity — not inflation — is what makes it read
     const anchor = pos.clone()
-      .addScaledVector(fwd, rng(1.7, 3.6))
-      .addScaledVector(right, rng(-1.1, 1.1))
-      .addScaledVector(up, rng(-0.9, 1.3));
+      .addScaledVector(fwd, rng(26, 54))          // well down-range, not at the lens
+      .addScaledVector(right, rng(-16, 16))
+      .addScaledVector(up, rng(-4, 11));
     const heading = right.clone().multiplyScalar(side)
       .addScaledVector(fwd, rng(-0.35, 0.35))
       .addScaledVector(UP, rng(-0.10, 0.14)).normalize();
     out.push({
       anchor, heading, up: UP.clone(), at,
-      travel: rng(70, 105),      // world units per full page of scroll
-      beats: rng(30, 44),        // wingbeats per full page — deliberately slow
-      /* Heroic scale, stated rather than pretended: a real jay against a 20m oak
-         is a speck, and a speck cannot flap in slow motion where anyone can see it.
-         Proximity does most of the work; this does the rest. */
-      scale: rng(1.5, 2.2),
+      travel: rng(150, 230),     // world units per full page of scroll
+      beats: rng(26, 38),        // wingbeats per full page — deliberately slow
+      scale: rng(2.6, 3.6),      // stated, not pretended: see DESIGN.md
     });
   }
   return out;
@@ -455,85 +482,59 @@ function jayAnchors(seed, split) {
 
 export function mountOak(canvas, opts = {}) {
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(42, 1, 0.5, 3200);   // the reveal sees the bridge
+  const NEAR = 0.6;
+  const camera = new THREE.PerspectiveCamera(42, 1, NEAR, 4200);   // the reveal sees the bridge
 
   const renderer = new THREE.WebGLRenderer({
-    canvas, antialias: true, alpha: true, powerPreference: 'low-power',
+    canvas, antialias: false, alpha: false, powerPreference: 'high-performance',
   });
-  renderer.setClearAlpha(0);
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;   // a tone curve, not a chain
-  renderer.toneMappingExposure = 1.2;   // fewer pixels riding the ACES shoulder
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  /* Tone mapping and the sRGB transfer both happen in the composer's final pass,
+     on the ONE image that reaches the canvas. Leaving them on here would tone-map
+     every batch on its way into a target that is supposed to still be linear HDR,
+     and the bloom would have nothing above 1.0 left to find. */
+  renderer.toneMapping = THREE.NoToneMapping;
+  renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+  renderer.setClearColor(0x000000, 1);
+  renderer.info.autoReset = false;      // we render several passes per frame
 
-  /* One low sun and a cool sky fill. No shadow maps: they are the single most
-     expensive thing a scene like this can ask for, and an autumn crown modelled
-     by a warm key against a cool fill reads without them. */
-  /* A low western sun that actually casts. Shadows are the single biggest reason a
-     lit scene reads as real rather than as a diagram, so they earn their one map —
-     tightly framed on the tree, 2048, soft. */
-  const sun = new THREE.DirectionalLight(0xFFDCAE, 4.0);   // warm, but not so orange it erases hue
-  sun.position.set(-150, 78, 55);          // low in the west, high enough to model the crown
-  sun.castShadow = true;
-  sun.shadow.mapSize.set(4096, 4096);   // bigger frustum needs the resolution back
-  /* The frustum has to cover every surface that RECEIVES shadow, not just the tree.
-     At +/-46 the shoreline beyond it sampled the clamped edge of the depth map and
-     came back shadowed, which is why the whole foreground rendered near-black. */
-  sun.shadow.camera.left = -170; sun.shadow.camera.right = 170;
-  sun.shadow.camera.top = 170; sun.shadow.camera.bottom = -170;
-  sun.shadow.camera.near = 1; sun.shadow.camera.far = 460;
-  sun.shadow.bias = -0.0006;
-  sun.shadow.normalBias = 0.03;
-  scene.add(sun);
-  scene.add(new THREE.HemisphereLight(0xA88BC4, 0x6A4A32, 2.0));    // purple sky, warm bounce
-  scene.add(new THREE.AmbientLight(0x6A5A70, 0.5));                 // keeps the shadows from going to pitch
+  const place = makeLineScene(scene, { near: NEAR });
 
-  const place = makeScene(scene);
-  const envRT = installEnvironment(renderer, scene, place.sky);
-
-  const barkTex = barkTextures();
-  const barkMat = new THREE.MeshStandardMaterial({
-    map: barkTex.map, roughnessMap: barkTex.roughnessMap,
-    vertexColors: true, roughness: 1.0, metalness: 0.0,
+  /* Two batches, two materials, two draw calls for the entire tree. Wood keeps
+     more of its weight at distance than foliage does — structure should still be
+     legible from the reveal, where the leaves have long since become a haze. */
+  const woodMat = lineMaterial({
+    near: NEAR, minWidth: 0.95, atten: 0.72, refDist: 34, intensity: 1.5, maxScale: 1.9,
+    fogColor: FOG, fogNear: 90, fogFar: 620,
   });
-  /* No vertexColors: instance colour tints these, and a missing geometry colour
-     attribute would zero it out (learned the hard way). alphaTest, not blending —
-     transparent foliage is the one thing old mobile GPUs cannot afford. */
-  const leafTex = leafTextures();
-  const leafMat = new THREE.MeshStandardMaterial({
-    map: leafTex.map, alphaMap: leafTex.alphaMap, alphaTest: 0.5,
-    roughness: 0.74, metalness: 0.0, side: THREE.DoubleSide,
+  const leafMat = lineMaterial({
+    near: NEAR, minWidth: 0.75, atten: 0.9, refDist: 26, intensity: 1.25,
+    fogColor: FOG, fogNear: 70, fogFar: 460,
   });
 
-  /* The leaf blade: five vertices, four triangles, folded along the midrib so the
-     light finds an angle on it. Its shape IS its silhouette — no alpha, because
-     alpha-blended foliage is exactly what old mobile GPUs choke on. */
-  /* Two triangles. The lobed oak silhouette now comes from the texture's alpha
-     rather than from geometry — cheaper than the four-triangle diamond AND a far
-     better shape than geometry that coarse could ever cut. */
-  function leafBlade() {
-    const g = new THREE.PlaneGeometry(0.62, 0.86);
-    g.translate(0, 0.16, 0);
-    return g;
-  }
+  let woodMesh = null, leafMesh = null;
 
-  let barkMesh = null, leafMesh = null;
+  /* The live drawing-buffer size, kept here rather than read back from the
+     renderer, because every line material needs it: the shader expands segments
+     in SCREEN space and divides by this. A material that never receives it
+     divides by one and every segment in it explodes to the size of the
+     viewport — which is exactly what the flock did, because it is built inside
+     flock() AFTER resize() has already run and resize() returns early on every
+     later frame. Anything created late has to be handed the resolution at
+     creation, not at the next resize that may never come. */
+  const RES = new THREE.Vector2(1, 1);
 
-  /* The oak is cut across frames, never in one block (see growOak's stepper).
-     Until it is finished the scene simply has nothing in it — and the static
-     engraving underneath is still the design, so nothing is missing. */
   let jays = null, jaySplit = null;
   function flock(split) {
     if (jaySplit === split) return;
     if (jays) { scene.remove(jays.group); jays.dispose(); }
     jaySplit = split;
-    jays = makeJays(jayAnchors(72926, split));
+    jays = makeJays(jayAnchors(72926, split), { near: NEAR });
+    jays.setResolution(RES);
     scene.add(jays.group);
   }
 
   const cutter = growOak(20260728);
-  let geometry = null, bounds = null, cutting = true;
-  let triangles = 0, leafCount = 0;
+  let cutting = true, segments = 0, leafCount = 0;
   let resolveReady;
   const ready = new Promise((res) => { resolveReady = res; });
 
@@ -544,33 +545,23 @@ export function mountOak(canvas, opts = {}) {
        on real hardware and roughly halves the wait on slow hardware. */
     if (cutter.step(9)) {
       const built = cutter.finish();
-      geometry = built.bark;
-      bounds = built.bark.boundingBox;
-      triangles = built.triangles + built.leaves.count * 4;
-      leafCount = built.leaves.count;
-
-      barkMesh = new THREE.Mesh(built.bark, barkMat);
-      barkMesh.frustumCulled = false;
-      barkMesh.castShadow = true;
-      barkMesh.receiveShadow = true;
-      scene.add(barkMesh);
-
-      leafMesh = new THREE.InstancedMesh(leafBlade(), leafMat, leafCount);
-      leafMesh.frustumCulled = false;
-      // matrices were composed during the slices; this is a straight copy
-      leafMesh.instanceMatrix.array.set(built.leaves.mat);
-      leafMesh.instanceMatrix.needsUpdate = true;
-      leafMesh.instanceColor = new THREE.InstancedBufferAttribute(built.leaves.col, 3);
-      leafMesh.castShadow = true;          // dappled shade is the whole point
-      leafMesh.receiveShadow = true;
-      scene.add(leafMesh);
+      woodMesh = lineBatch(built.wood, woodMat);
+      leafMesh = lineBatch(built.foliage, leafMat);
+      scene.add(woodMesh); scene.add(leafMesh);
+      segments = built.wood.count + built.foliage.count;
+      leafCount = built.foliage.count;
       cutting = false;
       invalidate();
-      resolveReady({ triangles, leaves: leafCount, bounds });
+      resolveReady({ segments, wood: built.wood.count, leaves: leafCount });
     } else {
       requestAnimationFrame(cut);
     }
   }
+
+  const composer = makeComposer(renderer, {
+    threshold: 1.15, strength: 0.60, exposure: 1.0,
+    grain: 0.018, vignette: 0.62, disperse: 0.0045,
+  });
 
   let W = 0, H = 0, dpr = 1;
   function resize() {
@@ -585,12 +576,19 @@ export function mountOak(canvas, opts = {}) {
     // narrow viewports need a wider field or the trunk crops to a stripe
     camera.fov = w < 700 ? 58 : 42;
     camera.updateProjectionMatrix();
+    const bw = Math.floor(w * dpr), bh = Math.floor(h * dpr);
+    // MSAA is the most expensive thing here and phone pixels are half the size
+    composer.setSize(bw, bh, w < 700 ? 0 : 4);
+    RES.set(bw, bh);
+    woodMat.uniforms.uRes.value.copy(RES);
+    leafMat.uniforms.uRes.value.copy(RES);
+    place.setResolution(RES);
+    if (jays) jays.setResolution(RES);
     return true;
   }
 
   const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
   let progress = 0, shown = 0, dirty = true, running = true, raf = 0;
-
 
   function frame() {
     raf = 0;
@@ -606,9 +604,8 @@ export function mountOak(canvas, opts = {}) {
     pointer.x += (pointer.tx - pointer.x) * 0.06;
     pointer.y += (pointer.ty - pointer.y) * 0.06;
 
-    // opts.station pins the camera for silhouette review; production never sets it
-    flock(W >= 900);
     jays.update(shown);
+    // opts.station pins the camera for silhouette review; production never sets it
     const s = opts.station || station(shown);
     // pointer parallax is bounded to a few world units (§5.5) — a breath, not a ride
     const px = pointer.x * 3.2, py = pointer.y * 2.0;
@@ -623,7 +620,15 @@ export function mountOak(canvas, opts = {}) {
     // its own right-vector moves the subject on screen without shearing the view.
     if (W >= 900 && s.off) camera.translateX(-s.off);
 
-    renderer.render(scene, camera);
+    /* The floor, enforced against the REAL land surface rather than against the
+       station table. Parallax, the editorial shift and any future station edit
+       all move the lens after the fact, so the only safe place to guarantee the
+       camera stays above ground is here, once everything else has had its say. */
+    const floor = place.landHeight(camera.position.x, camera.position.z) + FLOOR_CLEARANCE;
+    if (camera.position.y < floor) camera.position.y = floor;
+
+    renderer.info.reset();
+    composer.render(scene, camera);
 
     const settling = shown !== progress ||
       Math.abs(pointer.tx - pointer.x) > 0.001 || Math.abs(pointer.ty - pointer.y) > 0.001;
@@ -666,10 +671,9 @@ export function mountOak(canvas, opts = {}) {
 
   return {
     ready,
-    get triangles() { return triangles; },
+    get segments() { return segments; },
     get leaves() { return leafCount; },
     get jays() { return jays ? jays.count : 0; },
-    get bounds() { return bounds; },
     drawCalls: () => renderer.info.render.calls,
     renders: () => renderer.info.render.frame,   // cumulative frames, for idle-cost proof
     dispose() {
@@ -681,11 +685,11 @@ export function mountOak(canvas, opts = {}) {
       document.removeEventListener('visibilitychange', onVisibility);
       cutting = false;
       if (jays) jays.dispose();
-      if (geometry) geometry.dispose();
-      if (leafMesh) leafMesh.dispose();
+      if (woodMesh) woodMesh.geometry.dispose();
+      if (leafMesh) leafMesh.geometry.dispose();
       place.dispose();
-      if (envRT) envRT.dispose();
-      barkMat.dispose(); leafMat.dispose(); renderer.dispose();
+      composer.dispose();
+      woodMat.dispose(); leafMat.dispose(); renderer.dispose();
     },
   };
 }
