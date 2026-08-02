@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<!-- Merritt Digital — public no-login client application.
+     Built to docs/INTAKE-PUBLIC.md (spec v1, Schyler 2026-08-01) in merritt-studio:
+     field schema, caps, POST target, honeypot and success-state ref code all come from
+     that contract and must not drift from it. The endpoint is merritt-opsec's lane.
+
+     SUBMISSION IS CURRENTLY DISABLED, honestly and in the markup — see the notice in the
+     form and the measurement recorded beside ENDPOINT below. The fields carry `disabled`
+     in the HTML rather than only in script, so a visitor without JavaScript also sees the
+     truth instead of a form that looks live and silently cannot send.
+
+     Laws honored: single file, no external deps, system fonts, three-viewport, 44px targets. -->
+<!-- impeccable-disable cream-palette: #FAF7F0 is the studio's ratified paper token
+     (press/proposal.cjs default theme, M0.2) — deliberate palette, shared with pricing.html. -->
+<!-- impeccable-disable single-font: detector artifact — page pairs Iowan Old Style (display)
+     with system-ui (body), which the detector cannot resolve as a counted family. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Apply — Merritt Digital</title>
+<meta name="description" content="Tell Merritt Digital what you need. No login, no account. A person reads every application, and you get a reference code back.">
+<style>
+  :root{
+    --field:#1A1C20; --field-deep:#131519; --line:#3A3D45;
+    --brass:#B08D4A; --brass-lt:#E3C57E; --brass-dk:#8A6D33;
+    --paper:#FAF7F0; --ink:#23262B; --ink-dim:#565B66; --rule:#E4DED0;
+    --warn:#7A4A12; --warn-bg:#FBF1DE;
+    --serif:Iowan Old Style,Charter,Palatino,Georgia,serif;
+    --sans:system-ui,-apple-system,"Segoe UI",sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.55;overflow-x:hidden}
+  .field{background:var(--field);color:var(--paper)}
+  .wrap{max-width:820px;margin:0 auto;padding:0 24px}
+  header.field{padding:52px 0 44px;border-bottom:1px solid var(--brass)}
+  .mark{display:block;width:34px;height:34px;margin:0 auto 14px;color:var(--brass-lt)}
+  .kicker{font-size:12px;letter-spacing:.18em;padding-left:.18em;text-transform:uppercase;color:var(--brass-lt);text-align:center}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(30px,5vw,44px);text-align:center;margin-top:10px;line-height:1.12}
+  .sub{text-align:center;color:#C9CCD3;max-width:560px;margin:14px auto 0;font-size:15px}
+  main{padding:44px 0 24px}
+  h2{font-family:var(--serif);font-weight:600;font-size:clamp(22px,3.2vw,28px);margin:0 0 6px}
+  .rule-note{color:var(--ink-dim);font-size:14px;margin-bottom:22px}
+
+  /* what happens next — the oak bullet, same ring as pricing.html */
+  .steps{list-style:none;margin:0 0 40px;border-top:1px solid var(--rule)}
+  .steps li{padding:14px 0 14px 26px;position:relative;border-bottom:1px solid var(--rule);font-size:15px}
+  .steps li::before{content:"";position:absolute;left:2px;top:22px;width:9px;height:9px;border:1.5px solid var(--brass);border-radius:50%}
+  .steps b{font-weight:600}
+
+  form{background:#fff;border:1px solid var(--line);border-radius:6px;padding:28px 26px 26px}
+  fieldset{border:0;margin:0 0 30px}
+  fieldset:last-of-type{margin-bottom:22px}
+  legend{font-family:var(--serif);font-size:19px;font-weight:600;margin-bottom:4px}
+  .leg-note{color:var(--ink-dim);font-size:13.5px;margin-bottom:16px}
+  .row{margin-bottom:18px}
+  .row:last-child{margin-bottom:0}
+  label{display:block;font-size:14px;font-weight:600;margin-bottom:5px}
+  .opt{font-weight:400;color:var(--ink-dim)}
+  .hint{font-size:13px;color:var(--ink-dim);margin-bottom:7px}
+  input[type=text],input[type=email],input[type=tel],input[type=url],textarea{
+    width:100%;font-family:var(--sans);font-size:16px;line-height:1.5;color:var(--ink);
+    background:#fff;border:1px solid #C7C1B4;border-radius:4px;padding:11px 12px;min-height:44px}
+  textarea{resize:vertical;min-height:112px}
+  input:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible{
+    outline:2px solid var(--brass-dk);outline-offset:2px}
+  input:disabled,textarea:disabled{background:#F4F1EA;color:#7C8189;cursor:not-allowed}
+  .count{font-size:12px;color:var(--ink-dim);text-align:right;margin-top:4px}
+  .count.over{color:#9A2B12;font-weight:600}
+
+  /* consent: the target is the whole row, not the 16px box */
+  .consent{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;
+    border:1px solid var(--rule);border-radius:5px;padding:16px 16px 16px 14px;background:#FCFAF5}
+  .consent input{width:20px;height:20px;margin-top:2px;accent-color:var(--brass-dk)}
+  .consent label{font-weight:400;font-size:14px;margin:0;line-height:1.5;min-height:44px;display:flex;align-items:center}
+  .consent .req{font-weight:600}
+
+  .actions{margin-top:22px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+  .cta{background:var(--brass);color:var(--field-deep);font-family:var(--sans);font-weight:600;
+    padding:13px 28px;border:0;border-radius:4px;font-size:15px;min-height:44px;cursor:pointer}
+  .cta:hover:not(:disabled){background:var(--brass-lt)}
+  .cta:disabled{background:#D8D2C4;color:#7C8189;cursor:not-allowed}
+  .actions .aside{font-size:13px;color:var(--ink-dim)}
+
+  /* No side-tab accent bar on either of these. A thick coloured border down one
+     edge is the most recognisable tell of generated UI, and the page already has
+     a mark of its own: the same brass ring the steps list uses. */
+  .notice{border:1px solid var(--brass);border-radius:5px;
+    background:var(--warn-bg);color:var(--warn);padding:16px 18px 16px 38px;margin-bottom:26px;
+    font-size:14.5px;position:relative}
+  .notice::before{content:"";position:absolute;left:17px;top:23px;width:9px;height:9px;
+    border:1.5px solid var(--brass-dk);border-radius:50%}
+  .notice b{display:block;font-family:var(--serif);font-size:17px;font-weight:600;margin-bottom:5px;color:var(--field)}
+  .notice a{color:var(--warn);font-weight:600}
+
+  .err{border:1px solid #B4451F;border-radius:5px;background:#FBEFEA;
+    color:#8A2F12;padding:14px 16px 14px 38px;margin-bottom:20px;font-size:14.5px;position:relative}
+  .err::before{content:"";position:absolute;left:17px;top:21px;width:9px;height:9px;
+    border:1.5px solid #B4451F;border-radius:50%}
+  .err[hidden]{display:none}
+
+  /* the honeypot: off-screen, unfocusable, never announced */
+  .trap{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+
+  .done{background:#fff;border:2px solid var(--brass);border-radius:6px;padding:34px 28px;text-align:center}
+  .done h2{margin-bottom:8px}
+  .done p{color:var(--ink-dim);font-size:15px;max-width:52ch;margin:0 auto}
+  .ref{font-family:var(--serif);font-size:clamp(28px,6vw,40px);letter-spacing:.08em;
+    color:var(--field);background:var(--paper);border:1px dashed var(--brass);border-radius:5px;
+    padding:14px 22px;display:inline-block;margin:20px 0 6px}
+  /* block, or it flows inline beside the code instead of labelling it */
+  .ref-label{display:block;font-size:12px;letter-spacing:.16em;padding-left:.16em;
+    text-transform:uppercase;color:var(--brass-dk);margin-top:6px}
+
+  footer{border-top:1px solid var(--line);margin-top:44px;padding:26px 0 34px;color:var(--ink-dim);font-size:13px;text-align:center}
+  footer a{color:var(--ink-dim)}
+  @media(max-width:520px){
+    form{padding:22px 18px 20px}
+    .actions{gap:12px}
+    .cta{width:100%}
+  }
+</style>
+</head>
+<body>
+<header class="field">
+  <div class="wrap">
+    <svg class="mark" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+      <path d="M5.6 9.4h12.8c0 6.6-2.7 12.2-6.4 12.2S5.6 16 5.6 9.4Z"/>
+      <path d="M12 2.4c-4.2 0-7.4 2.6-7.4 5.2 0 .9.6 1.4 1.6 1.4h11.6c1 0 1.6-.5 1.6-1.4 0-2.6-3.2-5.2-7.4-5.2Z"/>
+    </svg>
+    <div class="kicker">Merritt Digital &middot; Alameda</div>
+    <h1>Tell us what you need</h1>
+    <p class="sub">No account, no login, no call to book. Fill this in and a person reads it. If it is a fit, the next thing you see is a working site at a real address, built for free.</p>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <h2>What happens after you send this</h2>
+  <p class="rule-note">Three steps, and the first two cost you nothing.</p>
+  <ol class="steps">
+    <li><b>A person reads it.</b> Not a queue and not a bot. You get a reference code on screen the moment it sends, so you have something to quote if you follow up.</li>
+    <li><b>If it is a fit, we build the demo.</b> A real site at a real URL, from your business, before any commitment and before any invoice.</li>
+    <li><b>You decide with the thing in front of you.</b> Prices are already published, in full, on the <a href="pricing.html">pricing page</a>. Nothing here signs you up for any of them.</li>
+  </ol>
+
+  <h2>Your application</h2>
+  <p class="rule-note">Everything marked optional really is. A short honest answer beats a long polished one.</p>
+
+  <div class="err" id="err" hidden role="alert"></div>
+
+  <form id="apply" novalidate>
+
+    <!-- Honest state, in the markup rather than only in script: a visitor with
+         JavaScript off must not be shown a form that looks live and cannot send. -->
+    <div class="notice">
+      <b>This form is not accepting submissions yet</b>
+      The page is finished; the receiving end is still being built, so nothing you typed here
+      would reach us and we would rather say so than take it into a void. Until it is live,
+      <a href="mailto:schylermcnally@gmail.com?subject=Merritt%20Digital%20application">email us</a>
+      with the same answers and you will get the same read.
+    </div>
+
+    <noscript>
+      <div class="notice"><b>This form needs JavaScript</b>
+        It sends without reloading the page. With scripting off, use the email link above.</div>
+    </noscript>
+
+    <fieldset id="fs" disabled>
+      <legend>Your business</legend>
+      <p class="leg-note">Who you are and where you are now.</p>
+
+      <div class="row">
+        <label for="business">Business name</label>
+        <input type="text" id="business" name="business" maxlength="120" autocomplete="organization" required>
+      </div>
+
+      <div class="row">
+        <label for="website">Current website <span class="opt">optional</span></label>
+        <p class="hint" id="website-h">If you have one. Paste the address as it is; a broken or dated site is useful information, not a problem.</p>
+        <input type="url" id="website" name="website" maxlength="200" inputmode="url"
+               autocomplete="url" placeholder="https://" aria-describedby="website-h">
+      </div>
+    </fieldset>
+
+    <fieldset disabled>
+      <legend>The work</legend>
+      <p class="leg-note">Please do not send anything confidential here. There are no file uploads on this form, and early work is built in the open. Sensitive material comes later, privately.</p>
+
+      <div class="row">
+        <label for="scope">What do you need?</label>
+        <p class="hint" id="scope-h">What the site has to do, and who it is for.</p>
+        <textarea id="scope" name="scope" maxlength="4000" required aria-describedby="scope-h scope-c"></textarea>
+        <div class="count" id="scope-c" data-max="4000"></div>
+      </div>
+
+      <div class="row">
+        <label for="objectives">What should it achieve? <span class="opt">optional</span></label>
+        <p class="hint" id="obj-h">Bookings, phone calls, walk-ins, one number you are trying to move.</p>
+        <textarea id="objectives" name="objectives" maxlength="2000" aria-describedby="obj-h obj-c"></textarea>
+        <div class="count" id="obj-c" data-max="2000"></div>
+      </div>
+
+      <div class="row">
+        <label for="cue">Anything you like the look of <span class="opt">optional</span></label>
+        <p class="hint" id="cue-h">Sites, packaging, a sign, a logo you have had for thirty years. We design from something you already own rather than inventing a look for you, so this is more useful than it sounds.</p>
+        <textarea id="cue" name="cue" maxlength="1000" aria-describedby="cue-h cue-c"></textarea>
+        <div class="count" id="cue-c" data-max="1000"></div>
+      </div>
+    </fieldset>
+
+    <fieldset disabled>
+      <legend>How to reach you</legend>
+      <p class="leg-note">Used to answer this application. Nothing else.</p>
+
+      <div class="row">
+        <label for="name">Your name</label>
+        <input type="text" id="name" name="name" maxlength="120" autocomplete="name" required>
+      </div>
+
+      <div class="row">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" maxlength="200" autocomplete="email" inputmode="email" required>
+      </div>
+
+      <div class="row">
+        <label for="phone">Phone <span class="opt">optional</span></label>
+        <input type="tel" id="phone" name="phone" maxlength="40" autocomplete="tel" inputmode="tel">
+      </div>
+
+      <!-- Honeypot. Named `company` per the contract: any non-empty value is dropped
+           silently server-side. Off-screen, unfocusable and hidden from assistive
+           tech, so only an automated filler ever reaches it. -->
+      <div class="trap" aria-hidden="true">
+        <label for="company">Company</label>
+        <input type="text" id="company" name="company" tabindex="-1" autocomplete="off">
+      </div>
+    </fieldset>
+
+    <fieldset disabled>
+      <div class="consent">
+        <input type="checkbox" id="consent" name="consent" required aria-describedby="consent-t">
+        <label for="consent" id="consent-t"><span>
+          <span class="req">I agree</span> that Merritt Digital may put what I send here into its
+          sandbox GitHub organisation in order to build the demo, and I understand that
+          repositories there are <strong>public</strong> while the demo is being built. Finished
+          production sites are moved out of the sandbox before launch.
+        </span></label>
+      </div>
+    </fieldset>
+
+    <div class="actions">
+      <button type="submit" class="cta" id="send" disabled>Send application</button>
+      <span class="aside" id="aside">Submissions are closed while the receiving end is built.</span>
+    </div>
+  </form>
+
+  <div class="done" id="done" hidden tabindex="-1">
+    <h2>That is with us</h2>
+    <span class="ref-label">Your reference</span>
+    <div class="ref" id="ref"></div>
+    <p id="done-note">Keep this code. It is how we find your application if you follow up. A person reviews it next, and we reply to the email address you gave us.</p>
+  </div>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    Merritt Digital &middot; Alameda, California &middot;
+    <a href="pricing.html">every price we charge is published</a>
+  </div>
+</footer>
+
+<script>
+/* ── the application form ─────────────────────────────────────────────────────
+   Built to merritt-studio/docs/INTAKE-PUBLIC.md (spec v1). The body shape, the
+   field caps, the honeypot name and the success-state ref code are all that
+   contract's, not this page's, and changing them here breaks the endpoint. */
+(function () {
+  'use strict';
+
+  var ENDPOINT = 'https://merritt.shmaptech.com/apply/intake';
+
+  /* MEASURED 2026-08-01, not assumed: the endpoint is not serving yet. A CORS
+     preflight to it returns 403 (Cloudflare Access — the method-scoped bypass in
+     the contract's warden lane is not in place), and GET redirects to the Access
+     login. Because the contract specifies content-type: application/json, any
+     browser POST from this origin triggers that preflight, so submitting cannot
+     work regardless of whether the handler itself exists yet.
+
+     When merritt-opsec's lane lands: set this true, drop the `disabled` from the
+     four fieldsets and the button, remove the notice block, and re-verify with a
+     real submission before merging. The disabled state lives in the markup too,
+     deliberately, so this constant is not the only thing standing between a
+     visitor and a form that silently goes nowhere. */
+  var ENDPOINT_LIVE = false;
+
+  var form = document.getElementById('apply'),
+      err = document.getElementById('err'),
+      done = document.getElementById('done'),
+      send = document.getElementById('send');
+
+  /* Live counters on the capped fields. The caps are the contract's, and a hard
+     maxlength that silently stops accepting characters is a small cruelty. */
+  [['scope', 'scope-c'], ['objectives', 'obj-c'], ['cue', 'cue-c']].forEach(function (p) {
+    var el = document.getElementById(p[0]), out = document.getElementById(p[1]);
+    var max = parseInt(out.getAttribute('data-max'), 10);
+    function tick() {
+      var left = max - el.value.length;
+      // quiet until it starts to matter
+      out.textContent = left > max * 0.2 ? '' : left + ' characters left';
+      out.classList.toggle('over', left <= 0);
+    }
+    el.addEventListener('input', tick);
+    tick();
+  });
+
+  function fail(msg) {
+    err.textContent = msg;
+    err.hidden = false;
+    err.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+
+  function val(id) { return document.getElementById(id).value.trim(); }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    err.hidden = true;
+
+    if (!ENDPOINT_LIVE) {
+      fail('This form is not accepting submissions yet. Please email us instead — nothing typed here would reach us.');
+      return;
+    }
+
+    // mirror the contract's required set, so the common mistakes are caught here
+    // rather than coming back as an opaque 400
+    var missing = [];
+    if (!val('business')) missing.push('your business name');
+    if (!val('scope')) missing.push('what you need');
+    if (!val('name')) missing.push('your name');
+    if (!val('email')) missing.push('your email');
+    if (missing.length) { fail('Still needed: ' + missing.join(', ') + '.'); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val('email'))) {
+      fail('That email address does not look right. We cannot reply without it.'); return;
+    }
+    if (!document.getElementById('consent').checked) {
+      fail('We need the consent box ticked before we can take this on.'); return;
+    }
+
+    var body = {
+      business: val('business'),
+      scope: val('scope'),
+      contact: { name: val('name'), email: val('email') },
+      consent: true,
+      company: document.getElementById('company').value   // honeypot, sent as found
+    };
+    // optional fields are omitted rather than sent empty
+    if (val('website')) body.website = val('website');
+    if (val('objectives')) body.objectives = val('objectives');
+    if (val('cue')) body.cue = val('cue');
+    if (val('phone')) body.contact.phone = val('phone');
+
+    send.disabled = true;
+    send.textContent = 'Sending…';
+
+    fetch(ENDPOINT, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body)
+    }).then(function (r) {
+      if (r.status === 429) throw new Error('That is more applications than we can take from one place in an hour. Please try again a little later.');
+      if (r.status === 413) throw new Error('That is longer than the form can carry. Trimming the longest answer should do it.');
+      if (r.status === 400) throw new Error('Something in the form came back rejected. Check the email address and try again.');
+      if (!r.ok) throw new Error('We could not reach the studio just now. Please try again, or email us.');
+      return r.json();
+    }).then(function (d) {
+      if (!d || !d.ok || !d.ref) throw new Error('The application sent, but no reference came back. Please email us so we can confirm it landed.');
+      document.getElementById('ref').textContent = d.ref;
+      form.hidden = true;
+      done.hidden = false;
+      done.focus();                       // move the reader to the outcome
+      done.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    })['catch'](function (e) {
+      send.disabled = false;
+      send.textContent = 'Send application';
+      fail(e.message || 'We could not reach the studio just now. Please try again, or email us.');
+    });
+  });
+})();
+</script>
+</body>
+</html>
