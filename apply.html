@@ -4,10 +4,10 @@
      field schema, caps, POST target, honeypot and success-state ref code all come from
      that contract and must not drift from it. The endpoint is merritt-opsec's lane.
 
-     SUBMISSION IS CURRENTLY DISABLED, honestly and in the markup — see the notice in the
-     form and the measurement recorded beside ENDPOINT below. The fields carry `disabled`
-     in the HTML rather than only in script, so a visitor without JavaScript also sees the
-     truth instead of a form that looks live and silently cannot send.
+     SUBMISSION IS LIVE as of the flip recorded beside ENDPOINT_LIVE below. If it ever
+     has to close again, the disabled state belongs in this markup and not only in the
+     script — a visitor without JavaScript must see the truth rather than a form that
+     looks live and silently cannot send.
 
      Laws honored: single file, no external deps, system fonts, three-viewport, 44px targets. -->
 <!-- impeccable-disable cream-palette: #FAF7F0 is the studio's ratified paper token
@@ -151,22 +151,14 @@
 
   <form id="apply" novalidate>
 
-    <!-- Honest state, in the markup rather than only in script: a visitor with
-         JavaScript off must not be shown a form that looks live and cannot send. -->
-    <div class="notice">
-      <b>This form is not accepting submissions yet</b>
-      The page is finished; the receiving end is still being built, so nothing you typed here
-      would reach us and we would rather say so than take it into a void. Until it is live,
-      <a href="mailto:schylermcnally@gmail.com?subject=Merritt%20Digital%20application">email us</a>
-      with the same answers and you will get the same read.
-    </div>
-
     <noscript>
       <div class="notice"><b>This form needs JavaScript</b>
-        It sends without reloading the page. With scripting off, use the email link above.</div>
+        It sends without reloading the page. With scripting off,
+        <a href="mailto:schylermcnally@gmail.com?subject=Merritt%20Digital%20application">email us</a>
+        the same answers and you will get the same read.</div>
     </noscript>
 
-    <fieldset id="fs" disabled>
+    <fieldset id="fs">
       <legend>Your business</legend>
       <p class="leg-note">Who you are and where you are now.</p>
 
@@ -183,7 +175,7 @@
       </div>
     </fieldset>
 
-    <fieldset disabled>
+    <fieldset>
       <legend>The work</legend>
       <p class="leg-note">Please do not send anything confidential here. There are no file uploads on this form, and early work is built in the open. Sensitive material comes later, privately.</p>
 
@@ -209,7 +201,7 @@
       </div>
     </fieldset>
 
-    <fieldset disabled>
+    <fieldset>
       <legend>How to reach you</legend>
       <p class="leg-note">Used to answer this application. Nothing else.</p>
 
@@ -237,7 +229,7 @@
       </div>
     </fieldset>
 
-    <fieldset disabled>
+    <fieldset>
       <div class="consent">
         <input type="checkbox" id="consent" name="consent" required aria-describedby="consent-t">
         <label for="consent" id="consent-t"><span>
@@ -250,8 +242,8 @@
     </fieldset>
 
     <div class="actions">
-      <button type="submit" class="cta" id="send" disabled>Send application</button>
-      <span class="aside" id="aside">Submissions are closed while the receiving end is built.</span>
+      <button type="submit" class="cta" id="send">Send application</button>
+      <span class="aside" id="aside">You will get a reference code on screen straight away.</span>
     </div>
   </form>
 
@@ -281,19 +273,19 @@
 
   var ENDPOINT = 'https://merritt.shmaptech.com/apply/intake';
 
-  /* MEASURED 2026-08-01, not assumed: the endpoint is not serving yet. A CORS
-     preflight to it returns 403 (Cloudflare Access — the method-scoped bypass in
-     the contract's warden lane is not in place), and GET redirects to the Access
-     login. Because the contract specifies content-type: application/json, any
-     browser POST from this origin triggers that preflight, so submitting cannot
-     work regardless of whether the handler itself exists yet.
+  /* LIVE. The Access bypass for POST /apply/intake is in place: the preflight
+     returns 204 with access-control-allow-origin set to this site, and the
+     handler accepts a POST and returns an 8-character ref. Acceptance for the
+     flip is one labelled TEST submission made from the DEPLOYED page and
+     verified in the store by the console lead — recorded in the flip PR rather
+     than here, because a reference code is a moment, not documentation.
 
-     When merritt-opsec's lane lands: set this true, drop the `disabled` from the
-     four fieldsets and the button, remove the notice block, and re-verify with a
-     real submission before merging. The disabled state lives in the markup too,
-     deliberately, so this constant is not the only thing standing between a
-     visitor and a form that silently goes nowhere. */
-  var ENDPOINT_LIVE = false;
+     If this ever has to go back to closed: set this false, restore `disabled` on
+     the four fieldsets and the submit button, and restore the notice block above
+     the form. The markup state matters as much as this constant — a visitor with
+     JavaScript off must never be shown a form that looks live and goes nowhere,
+     which is why the disabled state was never script-only. */
+  var ENDPOINT_LIVE = true;
 
   var form = document.getElementById('apply'),
       err = document.getElementById('err'),
