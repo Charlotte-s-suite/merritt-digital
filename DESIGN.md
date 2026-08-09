@@ -16,16 +16,39 @@ it as mine.
 
 ## The world
 
-**The site IS the engraved assay plate, taken into three dimensions.** The studio's object is the
-proposal/assay grammar it sells with; here that grammar stops being printed and starts being
-turned. One oak, drawn entirely in line, standing in real space, travelled from canopy to roots by
-the scroll.
+**The site IS a grown oak in autumn, lit.** _(Superseded the engraved world on 2026-07-29 — see
+[DRIFT.md](DRIFT.md). The engraving is preserved, complete and gate-clean, at tag
+`oak-engraved-v1`.)_ Real surfaces, real light, gold and russet foliage over shaded bark, travelled
+from canopy to roots by the scroll.
+
+**Autumn is what makes it work.** Realistic summer foliage would put green and brown against a
+brass-on-ink site and fight it. A real oak turning is already brass. Realism and the ratified
+palette are therefore the same thing, which is why adopting realism cost the rest of the site
+nothing.
+
+**The tree is a mighty ancient spreading oak** (reference set 2026-07-29): a short massive bole
+that forks low into a candelabra, under a broad mushroom dome markedly wider than the tree is
+tall, with low limbs sweeping almost level and a root plate flaring at the foot. Measured
+extents: roughly 55 wide over 31 tall above ground. That silhouette is not decoration — an
+upright conical tree would read as a poplar and carry none of the age the page is trading on.
 
 The one-line test: *you are inside the tree, and the tree is an engraving.*
 
-Two rules keep it honest and make it fast, and they are the same rule: **an engraving has no
-shading.** No surfaces, no lights, no shadow maps, no textures, no post-processing. Depth comes
-from line density and parallax, which is why it also holds 60fps on 2018 silicon.
+One rule keeps it honest and makes it affordable: **it is grown, not bought.** No model file, no
+textures, no purchased assets — every polygon comes from code and one fixed seed, so detail costs
+CPU at load rather than bytes over the wire, and the page's claim to have nothing bought in stays
+true. No shadow maps and nothing transparent either: alpha-blended foliage is the one thing 2018
+iPad silicon cannot afford, so a leaf's shape is its geometry. All bark is one merged mesh; all
+45,000 leaves are one instanced draw call; the six jays are three more.
+
+**Three forces shape every step of growth**, and the dome is their consequence rather than a mask
+applied over a cone: thin wood reaches for light, heavy wood settles under its own weight, and the
+crown envelope turns the outermost growth back and rolls it over. Structural wood below the fork
+is exempt — the bole answers to nothing, which is what keeps it a column.
+
+**The canopy is a shell, not a solid.** Twig sprays are emitted only where wood has reached the
+crown's skin; the interior stays open so the limb architecture reads through it. This is both
+truer to an oak and far cheaper than packing the volume with haze.
 
 ## Tokens
 
@@ -70,25 +93,71 @@ out-shouts reading copy.
   depth, opening a menu that names each station. It is a real `<button>` with `aria-expanded`,
   Escape closes it and returns focus, and every target is ≥44px.
 
+## The jays (added 2026-07-29)
+
+Blue jays cross the view as it descends. Two decisions carry them:
+
+- **Everything about them is a function of scroll position, never of time** — position,
+  wingbeat phase, bank. Scroll back up and they fly backwards with their wings un-beating, for
+  free; a stationary page still renders nothing, so the ledger's idle claim stays literally true;
+  and the motion is distance-mapped, which is what §5.2 asks of scrub work. Any future creature
+  or motion on this page inherits that rule.
+- **Jay blue is the only non-brass colour on the site, and it is earned** — they are blue jays.
+  Muted (`#8CAFD2` mantle, `#5E7591` primaries, `#DCE3EA` throat) so it sits with the metal
+  rather than shouting over it. This is not licence for a second accent.
+
+Two honest notes. They are drawn at **heroic scale** (1.5–2.2×) and placed 1.7–3.6 units from
+the lens: a real jay against a 20m oak is a speck, and a speck cannot flap in slow motion where
+anyone can see it. Proximity does most of that work, scale does the rest, and it is stated here
+rather than pretended. And each bird is its own object — one draw call each — because each beats
+its own wings; the ledger reports the true scene total, not the oak's single call.
+
 ## Rules this surface commits to
 
 1. **The static page is the design.** WebGL layers over a complete, readable page after LCP, and
    only if reduced-motion is off, save-data is off, and a context is granted. Any failure and the
    static engraving simply stays. No spinner, no blank, ever.
-2. **Render only on change.** No idle rAF. Verified: 0 frames over 2.5s idle, 22 on one scroll.
+2. **Render only on change.** No idle rAF. Verified: 0 frames over 2.5s idle, wakes on scroll.
    Any future motion work must preserve this — the page says so out loud in the ledger.
-3. **The ledger measures this load, on this device.** Seeded values are real (7,735 segments,
+7. **The tree is cut across frames, never in one block.** Building 115k segments in a single
+   task measured 957ms on a 4×-throttled CPU — a full second of freeze on the reference iPad.
+   The generator is a queue the renderer drains in 6ms slices. Any future geometry work inherits
+   this rule: if it can't be sliced, it's too big.
+3. **The ledger measures this load, on this device.** Seeded values are real (114,748 segments,
    24 kB of type) and labelled as a reference run until the live read replaces them. Never print
-   a measured-looking number that wasn't measured.
+   a measured-looking number that wasn't measured. **When the tree's morphology changes, the
+   seeded figure must be re-synced** — it is the number a visitor with JavaScript off is shown.
 4. **Numbers come from `merritt-studio/pricing.json`.** Nothing on this page is a price we made up.
 5. **Cursor flourishes are ornament, never affordance.** Pointer-fine only, reduced-motion off,
    bounded parallax (≤ a few world units). Nothing is reachable only by hovering.
 6. **Vendored, never CDN.** three.js (MIT) and both faces (OFL) are committed with their licences.
 
+## Evidence practice (from 2026-07-30)
+
+Every WebGL capture for this tenant goes through `tools/gpu-evidence.cjs`, which runs on
+merritt-studio's `lib/gpu-stage.cjs` and **asserts the renderer** — a run either produces
+`D3D12 (NVIDIA T1000)` frames or throws with the actual renderer string. Captures made before
+this date were software-rendered or static-fallback and have been replaced.
+
+- `node tools/gpu-evidence.cjs` — three viewports × six beats into `library/evidence/`, plus
+  `RENDERER.txt` recording the asserted renderer, the ledger and the width-law numbers.
+- `node tools/gpu-evidence.cjs --fps` — **relative only.** A WSL→d3d12→ANGLE figure is valid
+  as before/after on this box and is never an acceptance number. A human on the real device is
+  the acceptance path.
+- Headful-under-Xvfb is the only route to the GPU here; headless can never reach it. Do not
+  hand-roll flags — see `merritt-studio/docs/GPU-WEBGL.md`.
+
+Two things measurement caught that the eye had signed off on: the shoreline was rendering at
+0.12 albedo (near-black under any light) and the "half green" foliage measured **0% green** on
+screen because instance tint multiplies the colour map, so a green tint over a gold map is
+olive-brown. Both were invisible to me until sampled.
+
 ## Payload budget
 
-204 kB over the wire (§5.5 allows 300): three.js 164 · fonts 24 · page 11 · oak 5. If a future
-change pushes past 300 kB, the answer is a smaller engine, not a bigger budget.
+207 kB over the wire (§5.5 allows 300): three.js 164 · fonts 23 · page 11 · oak 8. If a future
+change pushes past 300 kB, the answer is a smaller engine, not a bigger budget. Note the tree
+itself costs nothing to ship — it is generated from a 7.6 kB module and a fixed seed, so detail
+is bought in CPU at load, not in bytes over the wire.
 
 ## What this surface deliberately refuses
 
