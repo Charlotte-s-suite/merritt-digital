@@ -160,7 +160,7 @@ export function lineMaterial(opts = {}) {
       uRefDist:   { value: opts.refDist || 40 },
       uWMax:      { value: opts.maxScale === undefined ? 4.0 : opts.maxScale },
       uIntensity: { value: opts.intensity === undefined ? 1 : opts.intensity },
-      uFogColor:  { value: new THREE.Color(opts.fogColor === undefined ? 0x2A1436 : opts.fogColor) },
+      uFogColor:  { value: new THREE.Color(opts.fogColor === undefined ? 0x261E19 : opts.fogColor) },
       uFogNear:   { value: opts.fogNear === undefined ? 60 : opts.fogNear },
       uFogFar:    { value: opts.fogFar === undefined ? 900 : opts.fogFar },
     },

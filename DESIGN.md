@@ -16,15 +16,23 @@ it as mine.
 
 ## The world
 
-**The site IS a grown oak in autumn, lit.** _(Superseded the engraved world on 2026-07-29 — see
-[DRIFT.md](DRIFT.md). The engraving is preserved, complete and gate-clean, at tag
-`oak-engraved-v1`.)_ Real surfaces, real light, gold and russet foliage over shaded bark, travelled
-from canopy to roots by the scroll.
+**The site IS an oak at dusk, etched in the studio's own brass.** _(Fourth rendering of the same
+tree. Succession, every step in [DRIFT.md](DRIFT.md): the monochrome engraving — tag
+`oak-engraved-v1` — became grown realism on 2026-07-29, became luminous line work on 2026-07-31
+— branch `oak-luminous-pr` — became this tonal line work on 2026-08-08 under Schyler's "classy,
+high end and refined" ruling. The growth morphology has never changed.)_ One primitive, the line
+segment, from root plate to last twig, with Lake Merritt behind it drawn the same way: the tree
+in the ratified brass ramp on an ink sky that warms to one gold band at the horizon.
 
-**Autumn is what makes it work.** Realistic summer foliage would put green and brown against a
-brass-on-ink site and fight it. A real oak turning is already brass. Realism and the ratified
-palette are therefore the same thing, which is why adopting realism cost the rest of the site
-nothing.
+**Light is scarce, and that is the design.** The tree is drawn — in weight, tone and density —
+and is built so it can never cross the bloom threshold. Exactly three things on the page emit:
+the sun's core, the Necklace of Lights, and a scatter of windows across the water. When almost
+nothing glows, the few things that do read as meaning; the luminous pass proved the converse.
+
+**Autumn is what makes it work.** A real oak turning is already brass, so the drawing and the
+ratified palette are the same thing: the turned half of the crown runs the gold ramp, the half
+still green (Schyler, 2026-07-29) is a muted sage a step away in tone, and the season reads as
+tone moving through one mass rather than two colours fighting.
 
 **The tree is a mighty ancient spreading oak** (reference set 2026-07-29): a short massive bole
 that forks low into a candelabra, under a broad mushroom dome markedly wider than the tree is
@@ -66,9 +74,10 @@ Inherited from the studio's ratified set (unchanged, shared with `pricing.html`)
 | `--on-field-dim` | `#9AA0A9` | secondary copy (verified ≥4.5:1 on both grounds) |
 | `--rule` | `rgba(176,141,74,.26)` | hairlines |
 
-Oak vertex ramp, keyed to the geometry's measured extents (y ∈ [−17, 31]):
-`#94743A` roots → `#B08D4A` trunk → `#E3C57E` canopy. Material opacity `0.76` so linework never
-out-shouts reading copy.
+Oak wood ramp (2026-08-08, `assets/palette.js`): `#2A211A` underground → `#45361F` bole shadow →
+`#8A6C34` (--brass-dp) → `#B08D4A` (--brass) → `#E3C57E` (--brass-lt) at the outermost twigs —
+the tree is drawn in the same metal the site is set in. Girth decides how much light a stroke
+carries; nothing on the tree may cross the composer's bloom threshold.
 
 ## Type
 
@@ -106,11 +115,12 @@ Blue jays cross the view as it descends. Two decisions carry them:
   Muted (`#8CAFD2` mantle, `#5E7591` primaries, `#DCE3EA` throat) so it sits with the metal
   rather than shouting over it. This is not licence for a second accent.
 
-Two honest notes. They are drawn at **heroic scale** (1.5–2.2×) and placed 1.7–3.6 units from
-the lens: a real jay against a 20m oak is a speck, and a speck cannot flap in slow motion where
-anyone can see it. Proximity does most of that work, scale does the rest, and it is stated here
-rather than pretended. And each bird is its own object — one draw call each — because each beats
-its own wings; the ledger reports the true scene total, not the oak's single call.
+Two honest notes. They are drawn at **heroic scale** (2.6–3.6×) and placed 26–54 units
+down-range (Schyler correction 2026-07-31 — "way too close" — ended the close-to-lens era): a
+real jay against a 20m oak is a speck, and a speck cannot flap in slow motion where anyone can
+see it. Scale does that work now, stated here rather than pretended. Since the luminous rebuild
+the whole flock is one instanced batch — one draw call — outlines only, held under the bloom
+threshold like everything else that is drawn rather than lit.
 
 ## Rules this surface commits to
 

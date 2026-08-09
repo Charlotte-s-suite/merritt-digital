@@ -87,9 +87,12 @@ export function makeJays(anchors, opts = {}) {
     baseWidth[w] = wid;
     w++;
   };
-  const body = JAY.body.clone().multiplyScalar(1.35);
-  const edge = JAY.edge.clone().multiplyScalar(2.1);      // the lit leading edge
-  const crest = JAY.crest.clone().multiplyScalar(1.6);
+  /* Held under the bloom threshold like everything else that is drawn rather
+     than lit — a glowing bird is a fairy, not a jay. The leading edge is still
+     the brightest stroke on the bird, just no longer an emitter. */
+  const body = JAY.body.clone().multiplyScalar(1.05);
+  const edge = JAY.edge.clone().multiplyScalar(1.2);      // the lit leading edge
+  const crest = JAY.crest.clone().multiplyScalar(1.3);
   for (let i = 0; i < N; i++) {
     for (let side = 0; side < 2; side++) {
       for (let k = 0; k < BODY.length; k++) {
@@ -111,7 +114,7 @@ export function makeJays(anchors, opts = {}) {
   }
 
   const mat = lineMaterial({
-    near, minWidth: 1.0, atten: 0.8, refDist: 30, intensity: 1.35, maxScale: 2.4,
+    near, minWidth: 1.0, atten: 0.8, refDist: 30, intensity: 1.1, maxScale: 2.4,
     fogColor: FOG, fogNear: 120, fogFar: 700,
   });
   const mesh = lineBatch({ start, end, colA, colB, width, count: CAP, order: 3 }, mat);

@@ -6,13 +6,15 @@
   agency grid of client thumbnails and the capability card-deck; it demonstrates instead,
   and measures itself out loud while it does.
   OWN-WORLD: A mighty oak half-turned for autumn, standing on the shore of Lake Merritt at
-  golden hour and drawn ENTIRELY IN LIGHT LINES — no surfaces, no shading model, one primitive
-  from the root plate to the last twig, and the whole place behind it drawn the same way. The
-  sky is a field, not a backdrop: near-black indigo overhead down through violet and magenta to
-  the sun's band on the water. Colour is positional — roots in indigo, the bole through plum
-  into amber, the crown in gold, with an electric emerald in the leaves that have not turned and
-  a cold cyan on the lake as the only two accents. Because nothing is opaque, the root plate
-  reads THROUGH the ground like an x-ray. Libre Caslon Display for the things of value, Archivo
+  golden hour and drawn ENTIRELY IN LINE — no surfaces, no shading model, one primitive from
+  the root plate to the last twig, and the whole place behind it drawn the same way. The
+  register is the studio's own: brass on ink. The tree is drawn in the ratified brass ramp —
+  dark bronze in the mass, lit brass at the extremities — against an ink sky that warms to a
+  single band of gold at the horizon; the half of the crown still green is a muted sage, and
+  the jays keep their earned steel blue. Light is scarce: the tree is DRAWN, never lit, and
+  only three things on the page emit — the sun's core, the Necklace of Lights, and a scatter
+  of windows across the water. Because nothing is opaque, the root plate reads faintly THROUGH
+  the ground, an engraver's underdrawing. Libre Caslon Display for the things of value, Archivo
   for apparatus. No textures, no purchased models, no image bytes at all — every line generated
   from code and one fixed number.
   STORY: A visitor arrives inside the canopy, descends the tree as they read, finds the page
@@ -21,11 +23,12 @@
   FIRST VIEWPORT: The canopy fills the frame; nameplate centred in Caslon at ~104px with the
   studio line beneath; one sentence of thesis; a rule and a scroll cue. The acorn, which is the
   primary navigation, is already at the lower right, filling as you descend.
-  FORM: Scroll-driven WebGL drawn entirely in luminous LINES — HDR colour into a half-float
-  target, bloomed, tone-mapped in one final pass. Schyler's direction, 2026-07-31: "back to just
-  lines, but with full color, tones and environment hues. Like a vivid tron dreamstate ...
-  cutting edge but not overly generated". The realism attempt it replaces is preserved at branch
-  oak-grown; the monochrome engraving before that at tag oak-engraved-v1.
+  FORM: Scroll-driven WebGL drawn entirely in LINE — HDR colour into a half-float target,
+  tone-mapped in one final pass, with bloom reserved for the three permitted lights. This is
+  the refined pass over the luminous build: Schyler, 2026-08-08, direct — "I actually don't
+  like the neon lights that much, it's too busy and drowns everything out ... make it more
+  classy, high end and refined." The luminous pass it replaces lives on branch oak-luminous-pr;
+  the realism attempt before that at oak-grown; the monochrome engraving at tag oak-engraved-v1.
   SCOPE: capability only, the site never names clients (Schyler ruling
   2026-07-29 via console lead; BRIEF.md job 1, DRIFT.md founding entry).
 
@@ -213,6 +216,17 @@
     #branches .wrap > *, #trunk .wrap > *, #roots .wrap > *{max-width:min(100%,660px)}
   }
 
+  /* Below the editorial split the tree centres BEHIND the copy, and the crown's
+     gold mass can rise behind a paragraph. The wide layout solves this with the
+     column scrim; narrow layouts ground the letterforms themselves in a soft
+     halo of the field colour — the same device the vista lines already use —
+     rather than dimming the whole drawing to buy contrast it only needs
+     locally. */
+  @media(max-width:899px){
+    #branches .wrap,#trunk .wrap,#roots .wrap,.canopy .body{
+      text-shadow:0 1px 16px rgba(19,21,25,.9),0 1px 3px rgba(19,21,25,.75)}
+  }
+
   /* ── recompose, don't shrink ── */
   @media(max-width:840px){
     .row{grid-template-columns:minmax(0,1fr);gap:6px}
@@ -299,8 +313,8 @@
       <dl class="ledger">
         <div class="row rise">
           <dt>Dimension</dt>
-          <dd class="val"><b id="m-seg">169,298</b> lines <span aria-hidden="true">&middot;</span> <b id="m-leaf">90,843</b> of them leaves</dd>
-          <dd class="note">The whole tree is one primitive: a line with a colour at each end. There is no model file and no image of any kind in this page &mdash; not a texture, not a photograph &mdash; so every one of those lines is grown from a few hundred lines of code and one fixed number, which is why all that detail costs nothing to send you. Drawn in <b id="m-draw">16</b> passes, of which most are the glow.</dd>
+          <dd class="val"><b id="m-seg">126,448</b> lines <span aria-hidden="true">&middot;</span> <b id="m-leaf">47,993</b> of them leaves</dd>
+          <dd class="note">The whole tree is one primitive: a line with a colour at each end. There is no model file and no image of any kind in this page &mdash; not a texture, not a photograph &mdash; so every one of those lines is grown from a few hundred lines of code and one fixed number, which is why all that detail costs nothing to send you. Drawn in <b id="m-draw">16</b> passes, most of them spent on the few things allowed to glow.</dd>
         </div>
         <div class="row rise">
           <dt>Frame</dt>

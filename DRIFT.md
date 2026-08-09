@@ -7,6 +7,49 @@ departure nobody wrote down becomes a house style by accident._
 
 ---
 
+## 2026-08-08 · The neon is ruled out: the line work goes tonal — brass on ink, light scarce
+
+**The ruling.** Schyler, 2026-08-08, direct: *"I actually don't like the neon lights that much,
+it's too busy and drowns everything out, spin up a fable design agent to redesign the whole
+sequence and make it more classy, high end and refined."*
+
+**What it changes.** The drawing engine, the growth, the choreography and the module layout are
+all untouched; what changed is what gets drawn and how much of it is allowed to shine.
+
+1. **The five-hue field becomes one tonal ramp.** The tree is now drawn in the studio's own
+   ratified brass (`#45361F → #8A6C34 → #B08D4A → #E3C57E`); the sky is ink warming to a single
+   gold band at the horizon, with the violet of the ruled dusk palette surviving only as a
+   heavily greyed memory in the mid band. The electric emerald and the cold cyan are gone —
+   the green half of the crown (Schyler 2026-07-29, still standing) is a muted sage, the water
+   is pewter, and the waterline is a drawn gilt edge instead of a cyan glow. The jays keep the
+   muted steel blue DESIGN.md already ruled earned.
+2. **Light is scarce.** The bloom threshold now sits ABOVE everything drawn: the tree, the
+   jays, the water and the ground can never bloom, by construction (their peak intensity is
+   set under the threshold). Exactly three things emit — the sun's core (halved in size and
+   gain), the Necklace of Lights, and a scatter of windows. Bloom strength halved, the
+   chromatic dispersion nearly removed.
+3. **Density is cut where it was noise.** Roughly four leaf strokes in ten are left un-inked
+   (47,993 leaf strokes against 90,843) — thinned by a SECOND rng stream so the shared growth
+   stream is untouched and the Schyler-approved silhouette regrows identically. The water
+   glitter drops from 13,000 dashes to ~4,300, dim off the sun's road; the ground grid drops
+   from a two-axis net to a handful of contour hints; downtown from 46 towers to 30.
+4. **Silhouettes are drawn dark and heavy, not glow-lit.** The Bay Bridge and the skyline read
+   as etched silhouettes against the gold band. This exposed a real geometry bug the glow had
+   hidden: the suspension cable was height-clamped outside the towers and closed the bridge
+   into a box; the cable now falls to the deck ends the way a cable hangs.
+
+**Standing §5.5 departures, recalibrated.** The post chain (DRIFT 2026-07-31 entry, item 1)
+remains, but its justification narrowed: with the tree below threshold it exists for the three
+permitted lights and the final grade only. Blended geometry and the desktop-only MSAA are
+unchanged. Total figures: 126,448 lines · 16 draw calls · zero image bytes · renders only on
+change.
+
+**What would reverse it.** A new Schyler ruling on the treatment. The luminous pass is intact
+on `oak-luminous-pr`; the growth was never touched, so any future rendering starts from the
+same tree.
+
+---
+
 ## 2026-07-31 · The form changes: luminous LINE work, and the post-processing that requires
 
 **The ruling.** Schyler, 2026-07-31, direct: *"this looks too much like a 90s video game, before we

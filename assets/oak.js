@@ -58,6 +58,14 @@ function growOak(seed) {
   const queue = [];                     // limbs waiting to be cut
   const rng = (a, b) => a + rand() * (b - a);
 
+  /* A SECOND stream, used only to thin the foliage. The refined pass draws
+     roughly half the leaf strokes the luminous pass drew — restraint is the
+     brief — but the main stream also decides every branch angle downstream,
+     so consuming extra draws from it would regrow a different tree and break
+     the approved silhouette. Every rand() call stays exactly where it was;
+     rand2 only decides whether a stroke that was computed gets INKED. */
+  const rand2 = mulberry32(seed ^ 0x5F3759DF);
+
   /* Capacity is generous and fixed: this tree is deterministic, so its size is
      knowable, and a full buffer degrades by dropping detail rather than throwing. */
   const wood = segmentWriter(220000);
@@ -133,17 +141,23 @@ function growOak(seed) {
          tips turned the whole crown into a cream-coloured cloud — the exact
          wash this palette exists to avoid. Only the sun, the windows and the
          necklace are allowed over the line. */
-      _cA.copy(c).multiplyScalar(0.50);           // base, in shade
-      _cB.copy(c).multiplyScalar(0.86);           // tip, catching the west light
+      _cA.copy(c).multiplyScalar(0.55);           // base, in shade
+      _cB.copy(c).multiplyScalar(0.95);           // tip, catching the west light
 
       /* Short, and barbed. At the first beat the camera is INSIDE the crown, so
          a leaf is read at arm's length: a long bare stroke there is a pine
          needle, not an oak leaf. Short midrib plus a pair of swept barbs reads
-         as a blade close up and still packs into a mass at distance. */
-      const len = rng(0.26, 0.46);
+         as a blade close up and still packs into a mass at distance.
+
+         The thinning gate: the luminous crown was a thicket — the named charge
+         in the 2026-08-08 verdict — and a drawing's elegance is largely its
+         negative space. Roughly four strokes in ten are left unlinked, decided
+         by the second stream so the tree underneath is untouched. */
+      const inked = rand2() > 0.38;
+      const len = rng(0.26, 0.46) * 1.12;
       _p.set(px, py, pz);
       _e.copy(_p).addScaledVector(_n, len);
-      foliage.push(_p.x, _p.y, _p.z, _e.x, _e.y, _e.z, _cA, _cB, 1.05);
+      if (inked) foliage.push(_p.x, _p.y, _p.z, _e.x, _e.y, _e.z, _cA, _cB, 0.95);
 
       if (shell > 0.30 && rand() > 0.32) {
         _x.set(_n.z, 0, -_n.x);
@@ -154,7 +168,9 @@ function growOak(seed) {
         for (const sgn of [1, -1]) {
           // swept BACK from the midrib, which is what makes it a leaf and not a cross
           _b.copy(mid).addScaledVector(_x, spread * sgn).addScaledVector(_n, -len * 0.10);
-          foliage.push(mid.x, mid.y, mid.z, _b.x, _b.y, _b.z, _cA, _cB, 0.9);
+          if (inked && rand2() > 0.30) {
+            foliage.push(mid.x, mid.y, mid.z, _b.x, _b.y, _b.z, _cA, _cB, 0.8);
+          }
         }
       }
     }
@@ -502,12 +518,16 @@ export function mountOak(canvas, opts = {}) {
   /* Two batches, two materials, two draw calls for the entire tree. Wood keeps
      more of its weight at distance than foliage does — structure should still be
      legible from the reveal, where the leaves have long since become a haze. */
+  /* Intensities are set so the tree tops out just UNDER the composer's bloom
+     threshold: the brightest possible twig (lit brass × girth heat × this
+     gain) stays below the line. The tree is drawn; it does not emit. That one
+     discipline is most of the distance between the neon pass and this one. */
   const woodMat = lineMaterial({
-    near: NEAR, minWidth: 0.95, atten: 0.72, refDist: 34, intensity: 1.5, maxScale: 1.9,
+    near: NEAR, minWidth: 0.95, atten: 0.72, refDist: 34, intensity: 1.15, maxScale: 1.9,
     fogColor: FOG, fogNear: 90, fogFar: 620,
   });
   const leafMat = lineMaterial({
-    near: NEAR, minWidth: 0.75, atten: 0.9, refDist: 26, intensity: 1.25,
+    near: NEAR, minWidth: 0.75, atten: 0.9, refDist: 26, intensity: 1.1,
     fogColor: FOG, fogNear: 70, fogFar: 460,
   });
 
@@ -558,9 +578,13 @@ export function mountOak(canvas, opts = {}) {
     }
   }
 
+  /* Bloom recalibrated for scarcity (2026-08-08): the threshold sits above
+     everything drawn, so only the sun, the necklace and the lit windows can
+     cross it; the strength is halved; the dispersion is nearly gone — a
+     chromatic fringe on every halo is a neon tell, not a lens. */
   const composer = makeComposer(renderer, {
-    threshold: 1.15, strength: 0.60, exposure: 1.0,
-    grain: 0.018, vignette: 0.62, disperse: 0.0045,
+    threshold: 1.25, strength: 0.38, exposure: 1.0,
+    grain: 0.015, vignette: 0.55, disperse: 0.0022,
   });
 
   let W = 0, H = 0, dpr = 1;

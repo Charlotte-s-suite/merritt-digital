@@ -85,8 +85,11 @@ const SKY_FRAG = /* glsl */`
     c = mix(c, uHigh,   smoothstep(0.60,  0.78, h));
     c = mix(c, uZenith, smoothstep(0.74,  1.00, h));
 
-    // below the horizon the sky darkens hard: that band is water, not sky
-    c *= mix(0.30, 1.0, smoothstep(0.44, 0.505, h));
+    /* Below the horizon the sky drops to near-ink. At 0.30 the whole lower
+       half of the reveal was a flat amber wash — the drawing's negative space
+       flooded with mud. The land and the water are DARK at dusk; the waterline,
+       the glitter road and the necklace articulate them against that dark. */
+    c *= mix(0.14, 1.0, smoothstep(0.455, 0.505, h));
 
     /* The gain is the single most important number in this file. The sky is a
        FIELD for luminous line work to sit against, which means it must stay
@@ -97,12 +100,13 @@ const SKY_FRAG = /* glsl */`
     c *= uGain;
 
     float sd = max(dot(d, normalize(uSunDir)), 0.0);
-    /* Only the core is allowed above the bloom threshold. The wide terms are
-       atmosphere, not light: generous exponents here are what smeared warm haze
-       across a third of the frame. */
-    c += uSun * pow(sd, 1400.0) * 2.4;         // the core: ~3.6 degrees across
-    c += uSun * pow(sd, 110.0) * 0.15;         // the halo immediately around it
-    c += uSun * pow(sd, 11.0)  * 0.045;        // the warm quarter of sky, barely
+    /* Only the core is allowed above the bloom threshold, and the core is
+       SMALL. The refined pass halved every term here: the old gains bloomed
+       into a white orb that owned a quarter of the reveal — a sun in an
+       etching is a disc with a modest halo, not a flare. */
+    c += uSun * pow(sd, 2600.0) * 1.9;         // the core: ~2.6 degrees across
+    c += uSun * pow(sd, 160.0)  * 0.07;        // the halo immediately around it
+    c += uSun * pow(sd, 12.0)   * 0.02;        // the warm quarter of sky, barely
 
     gl_FragColor = vec4(c, 1.0);
   }
@@ -150,27 +154,27 @@ export function makeLineScene(scene, opts = {}) {
   const rng = (a, b) => a + rand() * (b - a);
 
   /* ── the ground survey ──
-     Grid lines that follow the terrain, sampled densely enough to show the
-     undulation. Deliberately dim and slightly irregular in spacing: a perfectly
-     even bright grid is the cliché, an unevenly-spaced dim one reads as a
-     survey drawing. */
-  const GRID_EXT = 520, GRID_STEP = 15;
+     A luminous grid receding to a horizon is the most exhausted image in this
+     genre, and even the dim version of it read as a net under the tree. The
+     refined pass keeps only a HINT of survey: sparse contour lines, one axis,
+     wide apart, barely above the field, gone entirely within a couple hundred
+     units. The land is mostly negative space now — the waterline, the path and
+     the necklace articulate it, the way darkness actually works at dusk. */
+  const GRID_EXT = 300, GRID_STEP = 42;
   for (let i = -GRID_EXT; i <= GRID_EXT; i += GRID_STEP) {
-    const jitter = rng(-2.2, 2.2);
-    for (const axis of [0, 1]) {
-      let prev = null;
-      for (let t = -GRID_EXT; t <= GRID_EXT; t += 11) {
-        const x = axis ? t : i + jitter, z = axis ? i + jitter : t;
-        const y = landHeight(x, z);
-        if (y < WATER_Y) { prev = null; continue; }          // the grid stops at the water
-        const cur = { x, y: y + 0.02, z };
-        if (prev) {
-          const fade = 0.5 + 0.5 * Math.exp(-Math.hypot(x, z) / 260);
-          cA.copy(PLACE.shore).multiplyScalar(0.13 * fade);
-          world.push(prev.x, prev.y, prev.z, cur.x, cur.y, cur.z, cA, cA, 0.8);
-        }
-        prev = cur;
+    const jitter = rng(-4.5, 4.5);
+    let prev = null;
+    for (let t = -GRID_EXT; t <= GRID_EXT; t += 12) {
+      const x = t, z = i + jitter;
+      const y = landHeight(x, z);
+      if (y < WATER_Y) { prev = null; continue; }          // the survey stops at the water
+      const cur = { x, y: y + 0.02, z };
+      if (prev) {
+        const fade = Math.exp(-Math.hypot(x, z) / 190);
+        cA.copy(PLACE.shore).multiplyScalar(0.10 * fade);
+        world.push(prev.x, prev.y, prev.z, cur.x, cur.y, cur.z, cA, cA, 0.7);
       }
+      prev = cur;
     }
   }
 
@@ -189,8 +193,13 @@ export function makeLineScene(scene, opts = {}) {
   for (let i = 0; i < shoreRing.length; i++) {
     const a = shoreRing[i], b = shoreRing[(i + 1) % shoreRing.length];
     if (!a || !b) continue;
-    cA.copy(PLACE.water).multiplyScalar(1.9);
-    world.push(a.x, a.y, a.z, b.x, b.y, b.z, cA, cA, 1.5);
+    /* Still the brightest structural line in the scene — it is the one edge
+       that explains the whole place — but it is DRAWN now, in the horizon's
+       own gold, below the bloom threshold. The cyan version glowed like a
+       neon sign lying on the water; a gilt edge on dark water is the same
+       information with its voice lowered. */
+    cA.copy(PLACE.waterGlow).multiplyScalar(1.05);
+    world.push(a.x, a.y, a.z, b.x, b.y, b.z, cA, cA, 1.3);
   }
 
   /* ── the lakeside path ──
@@ -203,7 +212,7 @@ export function makeLineScene(scene, opts = {}) {
       const x = Math.cos(a) * (R + wob), z = Math.sin(a) * (R + wob) + SHORE_CZ;
       const cur = { x, y: landHeight(x, z) + 0.06, z };
       if (prev) {
-        cA.copy(PLACE.shore).multiplyScalar(0.95);
+        cA.copy(PLACE.shore).multiplyScalar(0.8);
         world.push(prev.x, prev.y, prev.z, cur.x, cur.y, cur.z, cA, cA, 1.0);
       }
       prev = cur;
@@ -223,13 +232,14 @@ export function makeLineScene(scene, opts = {}) {
      where the lake is the subject: the reveal. */
   const ROAD_EYE = { x: Math.sin(5.72) * 150, z: Math.cos(5.72) * 150 };
   const sunAz = Math.atan2(SUN_DIR.x, SUN_DIR.z);
-  /* Density and brightness both had to come up hard. At four thousand dashes
-     over a lagoon this size the lake simply did not exist in the reveal — the
-     waterline was the only thing saying "water", and beyond it was empty dark.
-     The distribution is biased toward the near and middle water, because that
-     is the band the reveal actually frames; scattering evenly out to the far
-     shore spends most of the dashes where they are a pixel wide. */
-  for (let i = 0; i < 13000; i++) {
+  /* The refined pass cut this field by more than half and re-weighted it: at
+     thirteen thousand near-uniform dashes the lake read as a sheet of glitter
+     — Schyler's "drowns everything out" named this frame as much as the crown.
+     Away from the sun's road the water is now barely-struck pewter, sparse
+     and dim; the density and the warmth both belong to the road alone, which
+     is what a low sun on dark water actually does: one bright path, and the
+     rest of the surface only just distinguishable from the sky it reflects. */
+  for (let i = 0; i < 5200; i++) {
     const a = rng(0, Math.PI * 2);
     const r = SHORE_R * (1.0 + Math.pow(rng(0, 1), 1.7) * 2.6);
     const x = Math.cos(a) * r, z = Math.sin(a) * r + SHORE_CZ;
@@ -238,11 +248,12 @@ export function makeLineScene(scene, opts = {}) {
     // how close this ripple is to the sun's road, as seen from the reveal
     const az = Math.atan2(x - ROAD_EYE.x, z - ROAD_EYE.z);
     const dAz = Math.abs(((az - sunAz + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
-    const road = Math.exp(-dAz * dAz * 18.0);
-    const len = rng(1.4, 6.0) * (1 + road * 1.1);
-    cA.copy(PLACE.water).lerp(PLACE.waterGlow, road * 0.92)
-      .multiplyScalar(0.85 + road * 1.45);
-    world.push(x - len, WATER_Y, z, x + len, WATER_Y, z, cA, cA, 0.8 + road * 1.2);
+    const road = Math.exp(-dAz * dAz * 22.0);
+    if (road < 0.05 && rand() < 0.55) continue;          // thin the open water hard
+    const len = rng(1.4, 5.2) * (1 + road * 1.1);
+    cA.copy(PLACE.water).lerp(PLACE.waterGlow, road * 0.95)
+      .multiplyScalar(0.30 + road * 1.35);
+    world.push(x - len, WATER_Y, z, x + len, WATER_Y, z, cA, cA, 0.7 + road * 1.0);
   }
 
   /* ── the Necklace of Lights ──
@@ -258,8 +269,8 @@ export function makeLineScene(scene, opts = {}) {
       const base = landHeight(px, pz);
       if (base < WATER_Y) continue;
       const top = base + 7.4;
-      cA.copy(PLACE.shore).multiplyScalar(0.85);
-      cB.copy(PLACE.necklace).multiplyScalar(1.2);
+      cA.copy(PLACE.shore).multiplyScalar(0.7);
+      cB.copy(PLACE.necklace).multiplyScalar(0.9);
       world.push(px, base, pz, px, top, pz, cA, cB, 1.0);
 
       // the swag: a catenary between this post and the next, as lit beads
@@ -271,8 +282,11 @@ export function makeLineScene(scene, opts = {}) {
         const dip = Math.sin(t * Math.PI) * 1.5;
         const cur = { x: px + (qx - px) * t, y: top + (qTop - top) * t - dip, z: pz + (qz - pz) * t };
         if (prev) {
-          cB.copy(PLACE.necklace).multiplyScalar(3.6);
-          lights.push(prev.x, prev.y, prev.z, cur.x, cur.y, cur.z, cB, cB, 1.25);
+          /* One of the three permitted lights, kept warm rather than fierce:
+             enough over the threshold to halo like a string of bulbs, not
+             enough to read as a neon rope around the lake. */
+          cB.copy(PLACE.necklace).multiplyScalar(2.6);
+          lights.push(prev.x, prev.y, prev.z, cur.x, cur.y, cur.z, cB, cB, 1.6);
         }
         prev = cur;
       }
@@ -284,7 +298,9 @@ export function makeLineScene(scene, opts = {}) {
      crown: drawing all twelve edges of every box made a thicket, and a tower
      reads from its corners and its top far more than from its base. */
   {
-    const N = 46;
+    /* Thirty towers, not forty-six: at this distance a skyline is a rhythm of
+       verticals and rooflines, and the extra sixteen only crosshatched it. */
+    const N = 30;
     for (let i = 0; i < N; i++) {
       const bx = rng(-780, 430), bz = rng(-1350, -820);
       const w = rng(26, 74), dp = rng(26, 62);
@@ -295,20 +311,22 @@ export function makeLineScene(scene, opts = {}) {
         const [sx, sz] = corners[k], [nx, nz] = corners[(k + 1) % 4];
         const x0 = bx + sx * w / 2, z0 = bz + sz * dp / 2;
         const x1 = bx + nx * w / 2, z1 = bz + nz * dp / 2;
-        cA.copy(PLACE.city).multiplyScalar(0.55);
-        cB.copy(PLACE.city).multiplyScalar(1.60);
-        world.push(x0, base, z0, x0, base + h, z0, cA, cB, 1.0);        // the vertical
-        world.push(x0, base + h, z0, x1, base + h, z1, cB, cB, 0.9);    // the crown
+        cA.copy(PLACE.city).multiplyScalar(0.5);
+        cB.copy(PLACE.city).multiplyScalar(1.5);
+        world.push(x0, base, z0, x0, base + h, z0, cA, cB, 1.3);        // the vertical
+        world.push(x0, base + h, z0, x1, base + h, z1, cB, cB, 1.1);    // the crown
       }
-      // windows: short hot dashes, clustered up the face nearest the water
-      const lit = Math.round(h / 9);
+      /* windows: fewer of them now, and only some over the threshold. A city
+         at dusk is mostly dark glass with a scatter of lit rooms; when every
+         window burned, the skyline read as a switchboard. */
+      const lit = Math.round(h / 12);
       for (let k = 0; k < lit; k++) {
-        if (rand() > 0.55) continue;
+        if (rand() > 0.4) continue;
         const y = base + rng(8, h - 4);
         const t = rng(-0.42, 0.42);
         const x = bx + t * w, z = bz + dp / 2;
-        cB.copy(PLACE.cityLit).multiplyScalar(rng(1.7, 3.3));
-        lights.push(x, y, z, x + rng(1.6, 3.4), y, z, cB, cB, 0.9);
+        cB.copy(PLACE.cityLit).multiplyScalar(rng(0.9, 2.1));
+        lights.push(x, y, z, x + rng(1.6, 3.4), y, z, cB, cB, 0.85);
       }
     }
   }
@@ -321,28 +339,41 @@ export function makeLineScene(scene, opts = {}) {
   {
     const CX = 620, DZ = -1980, SPAN = 1250, TOWER = 168, DECK = WATER_Y + 26;
     const towers = [CX - SPAN * 0.28, CX + SPAN * 0.28];
-    cA.copy(PLACE.bridge).multiplyScalar(1.45);
-    cB.copy(PLACE.bridge).multiplyScalar(1.90);
+    /* A silhouette is DARK and WIDE, not bright and thin. The luminous pass
+       leaned on self-glow to make the bridge read; without that crutch it
+       vanished into the band, so the refined pass draws it the way an etcher
+       would: heavy dark strokes against the one bright band in the sky. */
+    cA.copy(PLACE.bridge).multiplyScalar(0.75);
+    cB.copy(PLACE.bridge).multiplyScalar(0.95);
     // deck
-    world.push(CX - SPAN / 2, DECK, DZ, CX + SPAN / 2, DECK, DZ, cA, cA, 1.1);
+    world.push(CX - SPAN / 2, DECK, DZ, CX + SPAN / 2, DECK, DZ, cA, cA, 1.8);
     for (const tx of towers) {
-      world.push(tx, DECK - 24, DZ, tx, DECK + TOWER, DZ, cA, cB, 1.3);
-      world.push(tx - 16, DECK + TOWER * 0.62, DZ, tx + 16, DECK + TOWER * 0.62, DZ, cB, cB, 0.9);
+      world.push(tx, DECK - 24, DZ, tx, DECK + TOWER, DZ, cA, cB, 2.0);
+      world.push(tx - 16, DECK + TOWER * 0.62, DZ, tx + 16, DECK + TOWER * 0.62, DZ, cB, cB, 1.2);
     }
     // the main cable: a catenary through both towers, and the hangers off it
+    /* The cable, as a cable actually hangs: one dip between the towers, and
+       side spans that come back DOWN to the deck ends. The old profile clamped
+       at tower height outside the towers, so the silhouette closed into a box —
+       invisible while the bridge was a dim glow, and immediately wrong the
+       moment it was drawn dark and heavy enough to read. */
+    const T0 = towers[0], T1 = towers[1], E0 = CX - SPAN / 2, E1 = CX + SPAN / 2;
+    const cableY = (x) => {
+      if (x < T0) { const v = (T0 - x) / (T0 - E0); return DECK + TOWER * Math.pow(1 - v, 1.7); }
+      if (x > T1) { const v = (x - T1) / (E1 - T1); return DECK + TOWER * Math.pow(1 - v, 1.7); }
+      const u = (x - CX) / ((T1 - T0) / 2);
+      return DECK + 12 + (TOWER - 12) * u * u;
+    };
     let prev = null;
     for (let s = 0; s <= 90; s++) {
-      const t = s / 90;
-      const x = CX - SPAN / 2 + SPAN * t;
-      // parabola between the towers, rising to the tower tops at the ends
-      const u = (x - CX) / (SPAN * 0.28);
-      const y = DECK + TOWER * Math.min(1, u * u) + (1 - Math.min(1, u * u)) * 8;
-      const cur = { x, y, z: DZ };
+      const x = E0 + SPAN * (s / 90);
+      const cur = { x, y: cableY(x), z: DZ };
       if (prev) {
-        world.push(prev.x, prev.y, prev.z, cur.x, cur.y, cur.z, cB, cB, 1.0);
-        if (s % 3 === 0 && cur.y > DECK + 6) {
-          cA.copy(PLACE.bridge).multiplyScalar(0.34);
-          world.push(cur.x, DECK, DZ, cur.x, cur.y, DZ, cA, cA, 0.7);
+        world.push(prev.x, prev.y, prev.z, cur.x, cur.y, cur.z, cB, cB, 1.5);
+        // hangers only between the towers, where a suspension span has them
+        if (s % 3 === 0 && x > T0 && x < T1 && cur.y > DECK + 6) {
+          cA.copy(PLACE.bridge).multiplyScalar(0.5);
+          world.push(cur.x, DECK, DZ, cur.x, cur.y, DZ, cA, cA, 0.9);
         }
       }
       prev = cur;
@@ -374,8 +405,8 @@ export function makeLineScene(scene, opts = {}) {
     fogColor: FOG, fogNear: 600, fogFar: 7000,
   });
   const lightMat = lineMaterial({
-    near, minWidth: 1.0, atten: 0.35, refDist: 120, intensity: 2.4,
-    fogColor: 0x4A2038, fogNear: 700, fogFar: 4200,
+    near, minWidth: 1.0, atten: 0.35, refDist: 120, intensity: 2.2,
+    fogColor: 0x3A2C1E, fogNear: 700, fogFar: 4200,
   });
 
   const worldMesh = lineBatch(world.take(0), worldMat);
