@@ -20,7 +20,16 @@ it as mine.
 tree. Succession, every step in [DRIFT.md](DRIFT.md): the monochrome engraving — tag
 `oak-engraved-v1` — became grown realism on 2026-07-29, became luminous line work on 2026-07-31
 — branch `oak-luminous-pr` — became this tonal line work on 2026-08-08 under Schyler's "classy,
-high end and refined" ruling. The growth morphology has never changed.)_ One primitive, the line
+high end and refined" ruling, and went botanical the same day under his "nature has very few
+straight lines" ruling. The growth morphology has never changed — since the botanical pass,
+provably: `tools/skeleton-proof.mjs` hashes the skeleton itself.)_
+
+**Nature curves; human works are straight.** Since the botanical pass the tree carries almost
+no straight lines: centrelines are drawn as curves through the grown points, bark grain
+spirals and wanders as a coherent field (never per-rail noise — that unbinds the column),
+fissures fork and merge, twigs bend, and a leaf is a bowed midrib inside two arced blade
+edges. The engineered world — towers, bridge, necklace, survey lines — stays rectilinear on
+purpose: the contrast is the design, and it is also literally true of the place. One primitive, the line
 segment, from root plate to last twig, with Lake Merritt behind it drawn the same way: the tree
 in the ratified brass ramp on an ink sky that warms to one gold band at the horizon.
 
@@ -133,8 +142,9 @@ threshold like everything else that is drawn rather than lit.
    task measured 957ms on a 4×-throttled CPU — a full second of freeze on the reference iPad.
    The generator is a queue the renderer drains in 6ms slices. Any future geometry work inherits
    this rule: if it can't be sliced, it's too big.
-3. **The ledger measures this load, on this device.** Seeded values are real (114,748 segments,
-   24 kB of type) and labelled as a reference run until the live read replaces them. Never print
+3. **The ledger measures this load, on this device.** Seeded values are real (149,674 lines,
+   24 kB of type, re-synced at the botanical pass 2026-08-08) and labelled as a reference run
+   until the live read replaces them. Never print
    a measured-looking number that wasn't measured. **When the tree's morphology changes, the
    seeded figure must be re-synced** — it is the number a visitor with JavaScript off is shown.
 4. **Numbers come from `merritt-studio/pricing.json`.** Nothing on this page is a price we made up.

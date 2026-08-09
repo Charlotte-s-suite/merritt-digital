@@ -53,10 +53,15 @@ function mulberry32(seed) {
   };
 }
 
-function growOak(seed) {
+/* Exported for tools/skeleton-proof.mjs, which hashes the raw spine points to
+   prove the Schyler-approved growth is untouched across rendering passes. The
+   probe is called with each limb's spine BEFORE any emission, so what it sees
+   is the skeleton itself, never the drawing. Production never passes one. */
+export function growOak(seed, probe) {
   const rand = mulberry32(seed);
   const queue = [];                     // limbs waiting to be cut
   const rng = (a, b) => a + rand() * (b - a);
+  const tally = { rails: 0, hoops: 0, fissures: 0, fine: 0, twigs: 0, midribs: 0, blades: 0 };
 
   /* A SECOND stream, used only to thin the foliage. The refined pass draws
      roughly half the leaf strokes the luminous pass drew — restraint is the
@@ -65,6 +70,39 @@ function growOak(seed) {
      the approved silhouette. Every rand() call stays exactly where it was;
      rand2 only decides whether a stroke that was computed gets INKED. */
   const rand2 = mulberry32(seed ^ 0x5F3759DF);
+
+  /* A THIRD stream, for the drawing alone (2026-08-08, the botanical pass).
+     Everything that makes a line CURVE — spiral grain, rail wander, twig bend,
+     leaf bow — draws its randomness here, so however much the rendering
+     evolves, the growth stream is never consumed differently and the approved
+     skeleton regrows bit-identically. Proven by tools/skeleton-proof.mjs. */
+  const rand3 = mulberry32(seed ^ 0x9E3779B9);
+  const rng3 = (a, b) => a + rand3() * (b - a);
+
+  /* Catmull-Rom through the spine's own points, for EMISSION only. The growth
+     loop still walks the same straight-chained skeleton — same forces, same
+     jitter, same endpoints, and children still attach to the raw chain — but
+     what gets DRAWN is the smooth curve through those points. Nature curves;
+     the polyline was always a sampling artefact, not a shape decision. The
+     curve passes exactly through every control point, so the silhouette and
+     the bounding box cannot move. */
+  function smoothPts(pts, sub) {
+    if (sub <= 1 || pts.length < 3) return pts;
+    const out = [pts[0]];
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[Math.max(0, i - 1)], p1 = pts[i],
+            p2 = pts[i + 1], p3 = pts[Math.min(pts.length - 1, i + 2)];
+      for (let s = 1; s <= sub; s++) {
+        if (s === sub) { out.push(p2); continue; }      // exact through-point
+        const t = s / sub, t2 = t * t, t3 = t2 * t;
+        out.push(V(
+          0.5 * (2 * p1.x + (p2.x - p0.x) * t + (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 + (3 * p1.x - p0.x - 3 * p2.x + p3.x) * t3),
+          0.5 * (2 * p1.y + (p2.y - p0.y) * t + (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 + (3 * p1.y - p0.y - 3 * p2.y + p3.y) * t3),
+          0.5 * (2 * p1.z + (p2.z - p0.z) * t + (2 * p0.z - 5 * p1.z + 4 * p2.z - p3.z) * t2 + (3 * p1.z - p0.z - 3 * p2.z + p3.z) * t3)));
+      }
+    }
+    return out;
+  }
 
   /* Capacity is generous and fixed: this tree is deterministic, so its size is
      knowable, and a full buffer degrades by dropping detail rather than throwing. */
@@ -119,7 +157,8 @@ function growOak(seed) {
      bloom turns density into glow — which is exactly what a backlit canopy
      does at golden hour. */
   const _n = V(), _t = V(), _x = V(), _y = V(), _p = V(), _e = V(), _b = V();
-  const _cA = new THREE.Color(), _cB = new THREE.Color();
+  const _q = V(), _m = V(), _u = V(), _v = V();
+  const _cA = new THREE.Color(), _cB = new THREE.Color(), _cM = new THREE.Color();
   function leafSpray(a, b, shell) {
     const count = 1 + (rand() > 0.55 ? 1 : 0);
     _t.subVectors(b, a);
@@ -153,11 +192,30 @@ function growOak(seed) {
          in the 2026-08-08 verdict — and a drawing's elegance is largely its
          negative space. Roughly four strokes in ten are left unlinked, decided
          by the second stream so the tree underneath is untouched. */
-      const inked = rand2() > 0.38;
+      /* The thinning gate, tightened for the botanical pass: every drawn leaf
+         now costs curve strokes instead of straight ones, and the budget is
+         held by inking fewer, better leaves. Same second stream, same call
+         positions — only the threshold moved, so the tree underneath (and the
+         growth stream) is untouched. */
+      const inked = rand2() > 0.62;
       const len = rng(0.26, 0.46) * 1.12;
       _p.set(px, py, pz);
       _e.copy(_p).addScaledVector(_n, len);
-      if (inked) foliage.push(_p.x, _p.y, _p.z, _e.x, _e.y, _e.z, _cA, _cB, 0.95);
+
+      /* A midrib CURVES. Two strokes through a bowed midpoint — the bow is
+         sideways off the leaf's own axis, drawn from the drawing stream. */
+      let bow = 0;
+      if (inked) {
+        _q.set(_n.z, 0, -_n.x);
+        if (_q.lengthSq() < 1e-6) _q.set(1, 0, 0);
+        _q.normalize();
+        bow = rng3(0.10, 0.24) * len * (rand3() < 0.5 ? -1 : 1);
+        _m.copy(_p).addScaledVector(_n, len * 0.5).addScaledVector(_q, bow);
+        _cM.copy(_cA).lerp(_cB, 0.5);
+        tally.midribs += 2;
+        foliage.push(_p.x, _p.y, _p.z, _m.x, _m.y, _m.z, _cA, _cM, 0.95);
+        foliage.push(_m.x, _m.y, _m.z, _e.x, _e.y, _e.z, _cM, _cB, 0.95);
+      }
 
       if (shell > 0.30 && rand() > 0.32) {
         _x.set(_n.z, 0, -_n.x);
@@ -166,14 +224,45 @@ function growOak(seed) {
         const mid = _p.clone().addScaledVector(_n, len * 0.38);
         const spread = len * 0.62;
         for (const sgn of [1, -1]) {
-          // swept BACK from the midrib, which is what makes it a leaf and not a cross
+          /* A blade is a curve on BOTH sides, not a pair of barbs: each side
+             runs base → widest point → back in near the tip, closing a lobed
+             outline around the bowed midrib. The old straight barb tip is
+             kept as the widest point, so the crown's mass sits where it did. */
           _b.copy(mid).addScaledVector(_x, spread * sgn).addScaledVector(_n, -len * 0.10);
-          if (inked && rand2() > 0.30) {
-            foliage.push(mid.x, mid.y, mid.z, _b.x, _b.y, _b.z, _cA, _cB, 0.8);
+          if (inked && rand2() > 0.30 && rand3() < 0.78) {
+            _u.copy(_p).addScaledVector(_n, len * 0.08);
+            _v.copy(_e).addScaledVector(_n, -len * 0.12).addScaledVector(_q, bow * 0.5);
+            tally.blades += 2;
+            foliage.push(_u.x, _u.y, _u.z, _b.x, _b.y, _b.z, _cA, _cM, 0.8);
+            foliage.push(_b.x, _b.y, _b.z, _v.x, _v.y, _v.z, _cM, _cB, 0.8);
           }
         }
       }
     }
+  }
+
+  /* ── a twig ────────────────────────────────────────────────────────────────
+     A twig BENDS. One straight segment reads as drafted; the same twig drawn as
+     two strokes through a bowed midpoint reads as grown, for one extra segment.
+     The bow lives entirely on the drawing stream, and roughly three twigs in
+     ten are left un-inked to pay for the extra stroke — the crown keeps its
+     mass from the leaves, not from twig count. */
+  const _tm = V(), _tq = V(), _ta = V();
+  function drawTwig(a, b, along) {
+    if (rand3() > 0.58) return;                        // thinning pays for the bend
+    _tq.set(along.z, 0, -along.x);
+    if (_tq.lengthSq() < 1e-8) _tq.set(1, 0, 0);
+    _tq.normalize();
+    // the bow plane rolls randomly around the twig's own axis
+    _tq.applyAxisAngle(_ta.copy(along).normalize(), rng3(0, Math.PI * 2));
+    _tm.copy(a).lerp(b, 0.5).addScaledVector(_tq, along.length() * rng3(0.08, 0.20));
+    tally.twigs += 2;
+    woodColor(a.y, 0.12, true, _cA);
+    woodColor(_tm.y, 0.11, true, _cB);
+    wood.push(a.x, a.y, a.z, _tm.x, _tm.y, _tm.z, _cA, _cB, 0.85);
+    _cA.copy(_cB);
+    woodColor(b.y, 0.10, true, _cB);
+    wood.push(_tm.x, _tm.y, _tm.z, b.x, b.y, b.z, _cA, _cB, 0.8);
   }
 
   /* ── a limb ────────────────────────────────────────────────────────────────
@@ -199,86 +288,184 @@ function growOak(seed) {
       spine.push([p.clone(), next.clone()]);
       p = next;
     }
+    if (probe && probe.spine) probe.spine(spine, girth, depth, up);
 
-    const rails = girth > 3.6 ? 10 : girth > 2.4 ? 8 : girth > 1.6 ? 6 :
-                  girth > 0.95 ? 5 : girth > 0.5 ? 4 : girth > 0.2 ? 3 : 1;
+    /* Fewer rails than the drafted pass (10/8/6… → 7/6/5…), because every rail
+       is about to become a longer, curved, wandering stroke and the budget is
+       held by trading count for curvature. Curved and sparse beats straight
+       and dense — the lesson of the refined pass, applied to the grain. */
+    /* Heavy wood keeps the most rails — the camera passes closest to it, and a
+       round column needs enough fissure lines to bind into a body. Light wood
+       thins fast; its roundness is carried by curvature, not count. */
+    const rails = girth > 3.6 ? 9 : girth > 2.4 ? 7 : girth > 1.6 ? 4 :
+                  girth > 0.95 ? 3 : girth > 0.5 ? 3 : girth > 0.2 ? 2 : 1;
     // heavy wood is drawn heavily; a twig is a hairline. Weight IS the hierarchy.
     const weight = THREE.MathUtils.clamp(0.85 + girth * 0.52, 0.85, 3.5);
 
     if (rails === 1) {
-      // finest wood: the spine itself, one stroke, gradient along its length
-      for (const [a, b] of spine) {
-        woodColor(a.y, girth, up, _cA);
-        woodColor(b.y, girth, up, _cB);
-        wood.push(a.x, a.y, a.z, b.x, b.y, b.z, _cA, _cB, weight);
+      /* Finest wood: the spine itself, one stroke — but a smooth one where its
+         length would show the chain. A polyline of two visible straight runs is
+         a drafted twig; the same points through a curve are a grown one. */
+      const pts0 = [spine[0][0]];
+      for (const [, b] of spine) pts0.push(b);
+      const pts = (len > 1.3 && pts0.length > 2) ? smoothPts(pts0, 2) : pts0;
+      for (let i = 0; i < pts.length - 1; i++) {
+        woodColor(pts[i].y, girth, up, _cA);
+        woodColor(pts[i + 1].y, girth, up, _cB);
+        tally.fine++;
+        wood.push(pts[i].x, pts[i].y, pts[i].z, pts[i + 1].x, pts[i + 1].y, pts[i + 1].z, _cA, _cB, weight);
       }
     } else {
-      const pts = [spine[0][0]];
-      for (const [, b] of spine) pts.push(b);
+      const pts0 = [spine[0][0]];
+      for (const [, b] of spine) pts0.push(b);
+      /* The centreline is DRAWN as a curve through the grown points. Heavier
+         wood gets more subdivision because the camera gets closer to it. */
+      const sub = girth > 2.4 ? 3 : 2;
+      const pts = smoothPts(pts0, sub);
+      const n = pts.length;
 
-      // parallel transport one reference vector along the spine, so consecutive
-      // rings share a frame and the cage has no seam or twist
-      const tan = V(), ref = V(), side = V(), lift = V();
+      // parallel transport one reference vector along the smoothed spine, so
+      // consecutive frames agree and the grain owns ALL of the twist on purpose
+      const tan = V(), ref = V();
       tan.subVectors(pts[1], pts[0]).normalize();
       ref.set(-tan.z, 0, tan.x);
       if (ref.lengthSq() < 1e-6) ref.set(1, 0, 0);
       ref.normalize();
 
-      const rings = [];
-      for (let i = 0; i < pts.length; i++) {
-        const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)];
+      const frames = [];                     // {S, L, rr} per smoothed point
+      for (let i = 0; i < n; i++) {
+        const a = pts[Math.max(0, i - 1)], b = pts[Math.min(n - 1, i + 1)];
         tan.subVectors(b, a);
         if (tan.lengthSq() < 1e-9) tan.set(0, 1, 0);
         tan.normalize();
         ref.addScaledVector(tan, -ref.dot(tan));
         if (ref.lengthSq() < 1e-8) { ref.set(-tan.z, 0, tan.x); if (ref.lengthSq() < 1e-8) ref.set(1, 0, 0); }
         ref.normalize();
-        side.copy(ref);
-        lift.crossVectors(tan, side).normalize();
-
-        const t = i / (pts.length - 1);
+        const t = i / (n - 1);
         const f = flare ? 1 + flare * Math.pow(1 - t, 2.6) : 1;
-        const rr = Math.max(0.012, girth * (1 - t * TAP) * 0.5 * f);
-        const ring = [];
-        for (let k = 0; k < rails; k++) {
-          const ph = (k / rails) * Math.PI * 2;
-          /* Each rail WANDERS in and out along the limb rather than running
-             parallel to its neighbours. Straight evenly-spaced rails plus full
-             hoops made the bole read as a transmission pylon — an engineered
-             lattice, not bark. The second term is the wander; it is what turns
-             the cage back into a fluted old trunk. */
-          const flute = girth > 1.0
-            ? 1 + 0.09 * Math.sin(ph * 4) + 0.075 * Math.sin(i * 0.55 + k * 1.7)
-            : 1;
-          ring.push(pts[i].clone()
-            .addScaledVector(side, Math.cos(ph) * rr * flute)
-            .addScaledVector(lift, Math.sin(ph) * rr * flute));
-        }
-        rings.push(ring);
+        frames.push({
+          S: ref.clone(),
+          L: new THREE.Vector3().crossVectors(tan, ref).normalize(),
+          rr: Math.max(0.012, girth * (1 - t * TAP) * 0.5 * f),
+        });
       }
 
-      for (let i = 0; i < rings.length - 1; i++) {
+      /* ── the grain ─────────────────────────────────────────────────────────
+         Real bark grain is nothing like a ruled rail. Oak often has genuine
+         SPIRAL grain, so the whole cage twists slowly around the limb; on top
+         of that every fissure WANDERS on its own sine, and near the base of a
+         limb — the junction, where bark actually knots and swirls — a decaying
+         high-frequency turbulence bends the lines around the fork. All of it
+         is drawn from the third stream: the skeleton underneath never moves. */
+      /* Spiral grain belongs to wood wide enough to read as a SURFACE. On a
+         two-to-four-rail cage the rails are silhouette edges, and twisting
+         them winds the pair around the limb — a braid, not a branch (the
+         pinch-and-spread artifact, seen on the first cut of this pass). */
+      const twistBase = (rand3() < 0.5 ? -1 : 1) * rng3(0.4, 1.5);
+      const twist = girth > 3.6 ? twistBase : girth > 2.4 ? twistBase * 0.6 : twistBase * 0.12;
+      /* Wander shrinks as wood thickens: on a massive bole, rails that stray
+         too far stop binding into one cylinder and the trunk reads as a bundle
+         of ropes — measured on the first cut of this pass, not guessed. */
+      const wScale = THREE.MathUtils.clamp(1.45 - girth * 0.28, 0.55, 1.25) *
+                     (rails <= 4 ? 0.6 : 1);   // thin cages: the centreline carries the curve
+      /* The wander is a FIELD over the bark surface, not per-rail noise.
+         Neighbouring fissures in real bark flow together — combed, pinching,
+         spreading — so the swirl is a smooth function of angle and height that
+         every rail samples at its own position. Independent per-rail noise was
+         the first cut of this pass, and it unbound the column: rails that
+         don't wander together stop describing one body. */
+      const a1 = rng3(0.05, 0.13) * wScale, a2 = rng3(0.04, 0.10) * wScale;
+      const f1 = rng3(0.8, 1.8), f2 = rng3(1.4, 2.6);
+      const p1 = rng3(0, Math.PI * 2), p2 = rng3(0, Math.PI * 2), pj = rng3(0, Math.PI * 2);
+      const base = [], fA = [], fP = [];
+      for (let k = 0; k < rails; k++) {
+        // fissure spacing is irregular at birth — evenly-ruled slots are a lathe tell
+        base.push(((k + rng3(-0.28, 0.28)) / rails) * Math.PI * 2);
+        fA.push(rng3(0.04, 0.13)); fP.push(rng3(0, Math.PI * 2));
+      }
+      const junction = girth < 2.0;          // the knot-swirl belongs to small forks
+
+      const phase = (i, k) => {
+        const t = i / (n - 1);
+        const ph0 = base[k] + twist * t;
+        let ph = ph0 + a1 * Math.sin(2 * ph0 + t * f1 * Math.PI * 2 + p1)
+                     + a2 * Math.sin(3 * ph0 - t * f2 * Math.PI * 2 + p2);
+        if (junction) ph += 0.20 * Math.exp(-t * 6) * Math.sin(2 * ph0 + t * 22 + pj);
+        return ph;
+      };
+      const surf = (i, ph, k, out) => {
+        const F = frames[i];
+        const t = i / (n - 1);
+        const flute = girth > 1.0
+          ? 1 + 0.09 * Math.sin(ph * 4) + (k >= 0 ? fA[k] * Math.sin(t * 4.2 * Math.PI + fP[k]) : 0.04)
+          : 1;
+        return out.copy(pts[i])
+          .addScaledVector(F.S, Math.cos(ph) * F.rr * flute)
+          .addScaledVector(F.L, Math.sin(ph) * F.rr * flute);
+      };
+
+      const A = V(), B = V();
+      for (let i = 0; i < n - 1; i++) {
         for (let k = 0; k < rails; k++) {
-          const A = rings[i][k], B = rings[i + 1][k];
+          const phA = phase(i, k), phB = phase(i + 1, k);
+          surf(i, phA, k, A); surf(i + 1, phB, k, B);
           woodColor(A.y, girth, up, _cA);
           woodColor(B.y, girth, up, _cB);
           /* Rails on the far side of the limb are dimmer. There is no lighting
-             model here, so this stands in for one: without it a cage reads as
-             flat and transparent instead of as a solid round column. */
-          const facing = 0.55 + 0.45 * Math.max(0, Math.cos((k / rails) * Math.PI * 2 - 2.4));
+             model here, so this stands in for one — and because the grain now
+             spirals, a single fissure line rides through light and shade along
+             its run, which is exactly what sun does to twisted bark. */
+          const facing = 0.55 + 0.45 * Math.max(0, Math.cos((phA + phB) * 0.5 - 2.4));
           _cA.multiplyScalar(facing); _cB.multiplyScalar(facing);
+          tally.rails++;
           wood.push(A.x, A.y, A.z, B.x, B.y, B.z, _cA, _cB, weight * (0.7 + facing * 0.4));
         }
         /* BROKEN hoops on structural wood: short cross-checks, never a closed
-           ring. A closed ring every few steps is precisely what read as a pylon
-           — the eye finds the repeating horizontal band before it finds the
-           tree. Staggering which arc is drawn turns the same cue into bark. */
-        if (girth > 1.0 && i % 4 === 0) {
+           ring — a closed ring reads as a pylon band. Same world-frequency as
+           the drafted pass (every 4 grown steps), so the cue stays scarce. */
+        if (girth > 1.0 && i % ((girth > 2.4 ? 3 : 4) * sub) === 0) {
+          const step = i / sub;
           for (let k = 0; k < rails; k++) {
-            if ((k + i) % 3 !== 0) continue;
-            const A = rings[i][k], B = rings[i][(k + 1) % rails];
+            if ((k + step) % 3 !== 0) continue;
+            surf(i, phase(i, k), k, A); surf(i, phase(i, (k + 1) % rails), (k + 1) % rails, B);
             woodColor(A.y, girth, up, _cA); _cA.multiplyScalar(0.45);
+            tally.hoops++;
             wood.push(A.x, A.y, A.z, B.x, B.y, B.z, _cA, _cA, weight * 0.5);
+          }
+        }
+      }
+
+      /* ── fissures that fork and merge ──────────────────────────────────────
+         Bark fissures are not fixed in number down a trunk: they branch, drift
+         and rejoin their neighbours. Each event here leaves one rail, rides
+         slightly proud of the bark, and walks across to merge with the phase
+         of the next rail over a few rings — an anastomosing check line. Only
+         on wood heavy enough to have real bark. */
+      if (girth > 1.6) {
+        const events = 1 + (rand3() * Math.min(3.2, len / 3.5) | 0);
+        for (let q = 0; q < events; q++) {
+          const k0 = (rand3() * rails) | 0;
+          const dirn = rand3() < 0.5 ? -1 : 1;
+          const i0 = 1 + (rand3() * (n * 0.55) | 0);
+          const span = Math.min(n - 1 - i0, (2 + (rand3() * 3 | 0)) * sub);
+          if (span < sub + 1) continue;
+          const k1 = (k0 + dirn + rails) % rails;
+          let prevSet = false;
+          for (let s = 0; s <= span; s += Math.max(1, sub - 1)) {
+            const i = Math.min(n - 1, i0 + s);
+            const u = s / span;
+            const from = phase(i, k0);
+            let d = phase(i, k1) - from;
+            d -= Math.round(d / (Math.PI * 2)) * Math.PI * 2;   // shortest way round
+            surf(i, from + d * u * 0.92, -1, B);
+            B.sub(pts[i]).multiplyScalar(1.045).add(pts[i]);     // proud of the bark
+            if (prevSet) {
+              woodColor(A.y, girth, up, _cA); _cA.multiplyScalar(0.7);
+              woodColor(B.y, girth, up, _cB); _cB.multiplyScalar(0.7);
+              tally.fissures++;
+              wood.push(A.x, A.y, A.z, B.x, B.y, B.z, _cA, _cB, weight * 0.55);
+            }
+            A.copy(B); prevSet = true;
           }
         }
       }
@@ -296,16 +483,14 @@ function growOak(seed) {
           const twig = d.clone().applyAxisAngle(axis, rng(0.22, 1.25))
             .multiplyScalar(len * rng(0.30, 0.62));
           const end = tip.clone().add(twig);
-          // the twig itself is drawn, faintly — the crown needs its scaffolding
-          woodColor(tip.y, 0.12, true, _cA); woodColor(end.y, 0.10, true, _cB);
-          wood.push(tip.x, tip.y, tip.z, end.x, end.y, end.z, _cA, _cB, 0.85);
+          // the twig itself is drawn, faintly and BENT — the crown's scaffolding
+          drawTwig(tip, end, twig);
           leafSpray(tip, end, shell);
           if (rand() > 0.4) {
             const a2 = V(rng(-1, 1), rng(-1, 1), rng(-1, 1)).normalize();
             const t2 = twig.clone().applyAxisAngle(a2, rng(0.3, 1.1)).multiplyScalar(rng(0.5, 0.9));
             const end2 = end.clone().add(t2);
-            woodColor(end.y, 0.10, true, _cA); woodColor(end2.y, 0.09, true, _cB);
-            wood.push(end.x, end.y, end.z, end2.x, end2.y, end2.z, _cA, _cB, 0.8);
+            drawTwig(end, end2, t2);
             leafSpray(end, end2, shell);
           }
         }
@@ -372,6 +557,7 @@ function growOak(seed) {
      caller drives it. Breadth-first, so the tree fills out evenly rather than
      finishing one branch at a time. */
   return {
+    tally,
     done: () => queue.length === 0,
     step(budgetMs) {
       const t0 = performance.now();

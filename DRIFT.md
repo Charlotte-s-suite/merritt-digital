@@ -7,6 +7,45 @@ departure nobody wrote down becomes a house style by accident._
 
 ---
 
+## 2026-08-08 · The botanical pass: the tree loses its straight lines
+
+**The ruling.** Schyler, 2026-08-08, direct: *"Yes I agree with those critiques, the trunk in
+straight lines looks so basic, let's try curved swirling lines akin to the lines in real tree
+bark. Generally make the tree much more botanical, nature has very few straight lines."*
+
+**What it changes.** Only how the tree is DRAWN — `assets/oak.js` emission. The growth
+morphology is untouched and now provably so: `tools/skeleton-proof.mjs` hashes every limb's
+raw spine points before any emission (SHA-256 `0ba3f201…e17560`, 9,110 limbs, 36,960 points,
+same bounding box), identical before and after this pass. Segment parity stopped being a valid
+check the moment emission began subdividing, which is exactly why the proof moved to the
+skeleton itself.
+
+1. **Centrelines are drawn as Catmull-Rom curves** through the grown points — the polyline was
+   a sampling artefact, not a shape decision. The curve passes exactly through every control
+   point, so silhouette and bbox cannot move.
+2. **Bark grain is a field, not a rule.** Rails spiral (oak has genuine spiral grain — full on
+   the bole, faint on thin cages, where twist braids the silhouette edges), wander on a smooth
+   field over angle and height (per-rail independent noise unbinds the column into ropes —
+   tried, seen, rejected), start at irregular spacing, swirl near junctions, and occasionally
+   fork and merge into the neighbouring fissure. All of it drawn from a THIRD rng stream so
+   the growth stream is never consumed differently.
+3. **A twig bends** — two strokes through a bowed midpoint; three twigs in ten un-inked to pay.
+4. **A leaf curves** — bowed two-stroke midrib, blade sides arcing base → widest → tip;
+   thinning raised (ink ~38%) so fewer, better leaves hold the budget.
+5. **The rectilinear world stays rectilinear on purpose.** Towers, bridge, necklace, survey
+   lines are untouched: the oak is now the only organic thing in an engineered scene, which is
+   true of the actual place.
+
+**The budget.** 149,674 lines (53,146 leaves) against the ~150,000 ceiling; 16 draw calls,
+zero image bytes, renders only on change — all unchanged. Curves were paid for with fewer
+rails per limb (10/8/6… → 9/7/4…), heavier leaf thinning and twig thinning, never with a
+bigger budget.
+
+**What would reverse it.** A new Schyler ruling on the line form. The straight-rail emission
+is one commit back; the skeleton needs nothing — it never moved.
+
+---
+
 ## 2026-08-08 · The neon is ruled out: the line work goes tonal — brass on ink, light scarce
 
 **The ruling.** Schyler, 2026-08-08, direct: *"I actually don't like the neon lights that much,
