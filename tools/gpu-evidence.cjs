@@ -60,10 +60,18 @@ async function capture() {
      wrapper's socket wait does not assert, Chrome launches against a dead display and
      dies with "Missing X server". Filed for the upstream wrapper; avoided here by not
      cycling sessions. Xvfb's screen is the largest viewport; smaller ones fit inside. */
-  await withGpuPage(async (page, _b, info) => {
+  await withGpuPage(async (page0, browser, info) => {
     report.renderer = info.renderer;
     for (const [w, h] of VIEWPORTS) {
-      await page.setViewportSize({ width: w, height: h });
+      /* A FRESH CONTEXT per viewport, not just a resize. Reusing one page meant
+         the second and third viewports loaded against a warm cache, where
+         transferSize reads ~0 — so the captured ledger showed a nonsense weight
+         and the evidence misrepresented what a first-time visitor sees. Cycling
+         the whole gpu session per viewport is what leaves a stale X lock (see
+         §4); a new context inside the same browser costs nothing and gives a
+         cold cache. */
+      const ctx = await browser.newContext({ viewport: { width: w, height: h } });
+      const page = await ctx.newPage();
       await ready(page);
       if (w === 1280) {
         report.ledger = await page.evaluate(() => ({
@@ -82,8 +90,10 @@ async function capture() {
       const m = await widthLaw(page, w);
       const pass = m.doc <= m.client && m.body <= m.client;
       report.viewports.push({ w, h, ...m, pass });
+      const kb = await page.evaluate(() => document.getElementById('m-kb').textContent);
       console.log(`  ${w}x${h}: width law ${pass ? 'ok' : '*** FAIL ***'} ` +
-        `(client ${m.client}, doc ${m.doc}, body ${m.body})`);
+        `(client ${m.client}, doc ${m.doc}, body ${m.body}) · ledger weight ${kb} kB`);
+      await ctx.close();
     }
   }, { width: 1280, height: 912 });
   return report;

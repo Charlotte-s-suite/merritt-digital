@@ -543,15 +543,26 @@ var LEDGER = (function(){
   var kb = document.getElementById('m-kb'),
       txt = document.getElementById('measured-text'),
       box = document.getElementById('measured');
+  /* What this row claims is "everything it took to give you this" — the payload,
+     not the network cost of one particular visit. So it measures the COMPRESSED
+     BODY and only falls back to transferSize.
+
+     transferSize alone was wrong twice over on a returning visit: it reads 0 for
+     anything served from cache, so a fully warm load measured nothing, and a
+     partially revalidated one totalled a few hundred bytes and cheerfully
+     rendered "1 kB" — a flatly false number on the one row of this page whose
+     entire job is to be checkable. encodedBodySize is populated either way.
+     A total below a plausible floor is treated as no measurement at all and the
+     seeded em-dash stands, because saying nothing beats saying something false. */
   function weight(){
     try{
-      var total = 0, seen = false, list = performance.getEntriesByType('resource');
+      var total = 0, list = performance.getEntriesByType('resource');
       var nav = performance.getEntriesByType('navigation')[0];
-      if (nav && nav.transferSize){ total += nav.transferSize; seen = true; }
+      if (nav) total += nav.encodedBodySize || nav.transferSize || 0;
       for (var i = 0; i < list.length; i++){
-        if (list[i].transferSize){ total += list[i].transferSize; seen = true; }
+        total += list[i].encodedBodySize || list[i].transferSize || 0;
       }
-      if (seen && total > 0) kb.textContent = Math.round(total / 1024).toLocaleString();
+      if (total > 102400) kb.textContent = Math.round(total / 1024).toLocaleString();
     }catch(e){ /* the seeded em-dash stands */ }
   }
   return {

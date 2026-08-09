@@ -1,5 +1,5 @@
 ANGLE (Microsoft Corporation, D3D12 (NVIDIA T1000), OpenGL 4.6)
-captured 2026-08-09T05:36:26.572Z
+captured 2026-08-09T05:42:27.198Z
 ledger {"triangles":"126,448","leaves":"47,993","draws":"16","status":"Measured on your device, on this load."}
 390x844 width-law ok client=375 doc=375 body=375
 834x1112 width-law ok client=819 doc=819 body=819
