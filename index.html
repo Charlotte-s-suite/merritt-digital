@@ -5,21 +5,35 @@
   THESIS: A studio's portfolio should be the page you are standing on. This refuses the
   agency grid of client thumbnails and the capability card-deck; it demonstrates instead,
   and measures itself out loud while it does.
-  OWN-WORLD: The engraved assay plate in three dimensions. Brass on ink (#B08D4A/#E3C57E on
-  #1A1C20), Libre Caslon Display cut for the things of value, Archivo for apparatus, and one
-  oak drawn entirely in line: no surfaces, no shading, depth from line density alone.
+  OWN-WORLD: A mighty oak half-turned for autumn, standing on the shore of Lake Merritt at
+  golden hour and drawn ENTIRELY IN LIGHT LINES — no surfaces, no shading model, one primitive
+  from the root plate to the last twig, and the whole place behind it drawn the same way. The
+  sky is a field, not a backdrop: near-black indigo overhead down through violet and magenta to
+  the sun's band on the water. Colour is positional — roots in indigo, the bole through plum
+  into amber, the crown in gold, with an electric emerald in the leaves that have not turned and
+  a cold cyan on the lake as the only two accents. Because nothing is opaque, the root plate
+  reads THROUGH the ground like an x-ray. Libre Caslon Display for the things of value, Archivo
+  for apparatus. No textures, no purchased models, no image bytes at all — every line generated
+  from code and one fixed number.
   STORY: A visitor arrives inside the canopy, descends the tree as they read, finds the page
-  auditing itself on the way down, and lands at the roots where the numbers and the ask are.
+  auditing itself on the way down, touches the ground and rebounds off it, then pulls all the
+  way out over Lake Merritt to downtown Oakland and the Bay Bridge against the setting sun.
   FIRST VIEWPORT: The canopy fills the frame; nameplate centred in Caslon at ~104px with the
   studio line beneath; one sentence of thesis; a rule and a scroll cue. The acorn, which is the
   primary navigation, is already at the lower right, filling as you descend.
-  FORM: Scroll-driven WebGL line engraving — the site head's own proposal, and the site head's
-  to answer for. SCOPE: capability only, the site never names clients (Schyler ruling
+  FORM: Scroll-driven WebGL drawn entirely in luminous LINES — HDR colour into a half-float
+  target, bloomed, tone-mapped in one final pass. Schyler's direction, 2026-07-31: "back to just
+  lines, but with full color, tones and environment hues. Like a vivid tron dreamstate ...
+  cutting edge but not overly generated". The realism attempt it replaces is preserved at branch
+  oak-grown; the monochrome engraving before that at tag oak-engraved-v1.
+  SCOPE: capability only, the site never names clients (Schyler ruling
   2026-07-29 via console lead; BRIEF.md job 1, DRIFT.md founding entry).
 
   LAWS: single dependency-free page + vendored-local three.js (law 3 amendment, Signature
   tier) · WebGL layers over a complete static page and never gates it (§5.5) · all motion
   inside prefers-reduced-motion (§5.0) · every number from merritt-studio/pricing.json.
+  Post-processing and blended geometry are departures from §5.5's mobile floor and are
+  logged in DRIFT.md with the measurements that justify them.
 -->
 <!-- impeccable-disable cream-palette -- #FAF7F0 is the studio's ratified paper token, used here
      only as display ink on the dark field; the ground is #1A1C20. -->
@@ -34,9 +48,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Merritt Digital: a design studio in Alameda, California</title>
-<meta name="description" content="Merritt Digital builds business websites that behave like objects. This page is the portfolio: a hand-built oak engraving in real 3D, measuring its own weight and frame rate as you scroll it.">
+<meta name="description" content="Merritt Digital builds business websites that behave like objects. This page is the portfolio: an oak grown from code in real 3D — no model file, no textures — measuring its own weight and frame rate as you scroll it.">
 <meta property="og:title" content="Merritt Digital: this page is the portfolio">
-<meta property="og:description" content="An oak drawn entirely in line, turned by your scroll, on a page that audits itself out loud.">
+<meta property="og:description" content="An oak grown from code, lit and turning with your scroll, on a page that audits itself out loud.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#1A1C20">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%231A1C20'/%3E%3Ctext x='16' y='23' font-family='Georgia,serif' font-size='17' fill='%23E3C57E' text-anchor='middle'%3EM%3C/text%3E%3C/svg%3E">
@@ -67,16 +81,16 @@
   a{color:var(--brass-lt)}
   :focus-visible{outline:2px solid var(--brass-lt);outline-offset:3px;border-radius:2px}
 
-  /* ── the stage: canvas and static engraving both live behind everything ── */
+  /* ── the stage: canvas and static silhouette both live behind everything ── */
   .stage{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
   #oak{width:100%;height:100%;opacity:0;transition:opacity 1.1s var(--settle)}
   .stage.live #oak{opacity:1}
-  /* the static engraving IS the design until WebGL earns its place (§5.5) */
-  .static-oak{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(1500px,190vw);color:var(--brass);opacity:.3;transition:opacity .9s var(--settle)}
+  /* the static silhouette IS the design until WebGL earns its place (§5.5) */
+  .static-oak{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(1500px,190vw);color:#6A5330;opacity:.42;transition:opacity .9s var(--settle)}
   .stage.live .static-oak{opacity:0}
   .vignette{position:absolute;inset:0;background:radial-gradient(78% 60% at 50% 45%,transparent 22%,rgba(19,21,25,.82) 100%)}
   /* on wide screens the reading column gets its own quiet ground */
-  @media(min-width:900px){.vignette{background:radial-gradient(78% 60% at 50% 45%,transparent 22%,rgba(19,21,25,.82) 100%),linear-gradient(90deg,rgba(19,21,25,.72) 0%,rgba(19,21,25,.34) 34%,transparent 56%)}}
+  @media(min-width:900px){.vignette{background:radial-gradient(78% 60% at 50% 45%,transparent 22%,rgba(19,21,25,.82) 100%),linear-gradient(90deg,rgba(19,21,25,.88) 0%,rgba(19,21,25,.74) 30%,rgba(19,21,25,.40) 50%,rgba(19,21,25,.10) 64%,transparent 74%)}}
   /* cursor flourish: an engraver's registration mark, pointer devices only */
   .reg{position:fixed;left:0;top:0;z-index:1;pointer-events:none;opacity:0;color:var(--brass);transition:opacity .5s var(--settle);will-change:transform}
   body.has-pointer .reg{opacity:.5}
@@ -90,6 +104,19 @@
   h1{font-family:var(--display);font-weight:400;color:var(--paper);
      font-size:clamp(38px,9.4vw,104px);--ls:clamp(.02em,.9vw,.11em);letter-spacing:var(--ls);text-indent:var(--ls);line-height:1.02}
   .studio{margin-top:20px;font-size:13px;letter-spacing:.32em;text-indent:.32em;text-transform:uppercase;color:var(--brass)}
+  /* The opening beat parks the camera INSIDE the crown, which is the busiest
+     image on the page and exactly where the nameplate has to be read. A soft
+     elliptical scrim buys the contrast back locally instead of dimming the
+     whole tree, which would cost the beat its drama.
+
+     Anchored to the SECTION, which is already full-width, rather than to the
+     text block: insetting a scrim past the edges of .wrap pushed 241px of
+     invisible box past the viewport and broke the width law at all three
+     sizes. A decorative layer must never be able to widen the document. */
+  .canopy{position:relative}
+  .canopy::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+    background:radial-gradient(ellipse 64% 56% at 50% 44%,rgba(11,7,17,.76) 0%,rgba(11,7,17,.52) 46%,rgba(11,7,17,0) 78%)}
+  .canopy .wrap{position:relative;z-index:1}
   .hairline{width:clamp(80px,16vw,190px);height:1px;margin:30px auto;background:linear-gradient(90deg,transparent,var(--brass),transparent)}
   .thesis{font-family:var(--display);font-size:clamp(23px,3.4vw,38px);line-height:1.32;color:var(--paper);max-width:20ch;margin:0 auto;text-wrap:balance}
   .canopy .body{max-width:62ch;margin:24px auto 0;color:var(--on-field)}
@@ -137,8 +164,15 @@
   .btn-line{border:1px solid var(--brass);color:var(--brass-lt)}
   .btn-line:hover,.btn-line:focus-visible{background:rgba(176,141,74,.14);border-color:var(--brass-lt)}
 
+  /* ── the vista: the reveal's own screen. Without a beat here the scroll ends on
+        an opaque footer and the payoff shot has nowhere to be seen. ── */
+  .vista{min-height:100vh;min-height:100svh;display:flex;align-items:flex-end;padding-bottom:12vh}
+  .vista-line{font-family:var(--display);font-size:clamp(24px,3.6vw,44px);color:var(--paper);line-height:1.2;text-wrap:balance;
+    text-shadow:0 2px 24px rgba(20,10,6,.75)}
+  .vista-sub{margin-top:14px;font-size:15px;color:#F0DCC8;max-width:46ch;text-shadow:0 1px 14px rgba(20,10,6,.8)}
+
   /* ── colophon ── */
-  footer{position:relative;z-index:2;background:var(--field-deep);border-top:1px solid var(--rule);padding:clamp(48px,8vh,80px) 0 calc(clamp(48px,8vh,80px) + env(safe-area-inset-bottom))}
+  footer{position:relative;z-index:2;background:rgba(19,21,25,.82);border-top:1px solid var(--rule);padding:clamp(48px,8vh,80px) 0 calc(clamp(48px,8vh,80px) + env(safe-area-inset-bottom))}
   .colophon{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:clamp(22px,4vw,44px)}
   .colophon h3{font-size:13px;letter-spacing:.2em;text-indent:.2em;text-transform:uppercase;color:var(--brass);font-weight:400}
   .colophon p{margin-top:10px;font-size:15px;color:var(--on-field-dim)}
@@ -209,19 +243,29 @@
 </head>
 <body>
 
-<!-- The stage. Static engraving first — it is the design, not a placeholder (§5.5). -->
+<!-- The stage. Static silhouette first — it is the design, not a placeholder (§5.5). -->
 <div class="stage" id="stage" aria-hidden="true">
   <canvas id="oak"></canvas>
-  <svg class="static-oak" viewBox="0 0 800 620" fill="none" stroke="currentColor" stroke-width="1">
-    <g stroke-linecap="round">
-      <path d="M400 620V300M400 300c-6-40-30-64-64-84M400 300c6-46 34-70 74-92M400 386c-8-34-40-52-78-62M400 386c10-30 44-46 84-54"/>
-      <path d="M336 216c-30-16-46-40-54-72M336 216c-36 4-64-6-92-30M474 208c26-24 36-52 38-88M474 208c34 0 66-14 92-42"/>
-      <path d="M478 260c34-10 58-30 76-58M322 244c-32-6-58-24-78-52"/>
-      <path d="M282 144c-14-18-20-36-22-58M244 186c-22-6-40-18-56-36M512 120c8-20 10-40 8-62M566 166c22-10 38-24 52-44"/>
-      <path d="M554 202c26 2 48-6 68-22M246 236c-24 4-46-2-66-16"/>
-      <circle cx="400" cy="470" r="150" opacity=".22"/><circle cx="400" cy="470" r="196" opacity=".13"/>
-      <path d="M120 470h560" opacity=".3"/>
-      <path d="M400 500c-40 18-70 46-92 84M400 500c44 16 76 44 100 82M400 540c-16 26-24 52-26 80M400 540c18 24 28 50 32 78"/>
+  <svg class="static-oak" viewBox="0 0 900 620" aria-hidden="true">
+    <!-- The pre-WebGL state has to look like the same tree, so this is a filled
+         silhouette now rather than the line drawing that matched the engraving. -->
+    <g fill="currentColor">
+      <path d="M436 470h28l10-118q-24-6-48 0Z" opacity=".95"/>
+      <path d="M450 352q-52-10-96-52 40 34 96 40Zm0 0q54-10 100-56-42 38-100 44Zm0 26q-40-6-74-34 30 30 74 40Zm0 4q42-8 78-38-32 32-78 42Z" opacity=".9"/>
+      <g opacity=".55">
+        <ellipse cx="450" cy="212" rx="132" ry="86"/>
+        <ellipse cx="286" cy="268" rx="122" ry="76"/>
+        <ellipse cx="620" cy="262" rx="128" ry="80"/>
+        <ellipse cx="368" cy="176" rx="104" ry="68"/>
+        <ellipse cx="546" cy="170" rx="108" ry="70"/>
+        <ellipse cx="196" cy="322" rx="86" ry="52"/>
+        <ellipse cx="710" cy="316" rx="90" ry="54"/>
+      </g>
+      <g opacity=".8">
+        <path d="M444 470q-58 16-104 60 40-48 104-70Zm12 0q60 14 108 58-42-48-108-68Z"/>
+        <path d="M446 470q-16 40-20 92 0-56 26-92Zm10 0q20 38 26 88-4-54-30-88Z"/>
+        <path d="M430 474q-72 8-128 50 50-46 128-62Zm40 0q74 6 132 48-52-46-132-60Z"/>
+      </g>
     </g>
   </svg>
   <div class="vignette"></div>
@@ -242,7 +286,7 @@
       <p class="studio">Design studio &middot; Alameda</p>
       <div class="hairline"></div>
       <p class="thesis">This page is the portfolio.</p>
-      <p class="body">You are inside the canopy of an oak that is real geometry, drawn entirely in line and turned by your scroll. It was built the way we build for clients: one page, no framework, no template, nothing bought in. Keep going and it takes you to the roots.</p>
+      <p class="body">You are inside the canopy of an oak half-turned for autumn, on the shore of Lake Merritt. Every branch and every leaf of it is real geometry, grown from a few hundred lines of code rather than downloaded, and turned by your scroll. It was built the way we build for clients: one page, no framework, no template. Keep going: it falls the length of the tree, bounces off the ground, and opens out over the water to Oakland.</p>
       <p class="cue">Scroll into the tree<span></span></p>
     </div>
   </section>
@@ -255,8 +299,8 @@
       <dl class="ledger">
         <div class="row rise">
           <dt>Dimension</dt>
-          <dd class="val"><b id="m-seg">7,735</b> segments <span aria-hidden="true">&middot;</span> <b id="m-draw">1</b> draw call</dd>
-          <dd class="note">One merged geometry, one material. No textures, no lights, no shadow maps, no post-processing. An engraving doesn&rsquo;t need them, which is exactly why it stays fast.</dd>
+          <dd class="val"><b id="m-seg">169,298</b> lines <span aria-hidden="true">&middot;</span> <b id="m-leaf">90,843</b> of them leaves</dd>
+          <dd class="note">The whole tree is one primitive: a line with a colour at each end. There is no model file and no image of any kind in this page &mdash; not a texture, not a photograph &mdash; so every one of those lines is grown from a few hundred lines of code and one fixed number, which is why all that detail costs nothing to send you. Drawn in <b id="m-draw">16</b> passes, of which most are the glow.</dd>
         </div>
         <div class="row rise">
           <dt>Frame</dt>
@@ -342,6 +386,13 @@
     </div>
   </section>
 
+  <section class="vista" id="vista">
+    <div class="wrap">
+      <p class="vista-line">Alameda &middot; Oakland &middot; the lake we are named for.</p>
+      <p class="vista-sub">Merritt Digital builds on this side of the bay.</p>
+    </div>
+  </section>
+
 </main>
 
 <footer>
@@ -374,6 +425,7 @@
     <a href="#branches" data-nav="branches">What this page is doing<span class="depth">01</span></a>
     <a href="#trunk" data-nav="trunk">How we work<span class="depth">02</span></a>
     <a href="#roots" data-nav="roots">What it costs<span class="depth">03</span></a>
+    <a href="#vista" data-nav="vista">The view from here<span class="depth">04</span></a>
     <div class="out"><a href="pricing.html">The full rate sheet<span class="depth" aria-hidden="true">&rarr;</span></a></div>
   </nav>
   <button class="acorn" id="acorn" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open the menu">
@@ -521,8 +573,11 @@ var LEDGER = (function(){
     }
     import('./assets/oak.js').then(function(mod){
       var oak = mod.mountOak(document.getElementById('oak'));
+      /* the tree is cut across frames; it appears when it is whole */
+      return oak.ready.then(function(info){
       stage.classList.add('live');
-      document.getElementById('m-seg').textContent = oak.segments.toLocaleString();
+      document.getElementById('m-seg').textContent = info.segments.toLocaleString();
+      document.getElementById('m-leaf').textContent = info.leaves.toLocaleString();
 
       /* real frame timing, sampled while the visitor is actually here */
       var frames = 0, t0 = 0, best = 0, windows = 0;
@@ -548,6 +603,7 @@ var LEDGER = (function(){
         LEDGER.weight();
         LEDGER.say('Measured on your device, on this load.', true);
       }, 1200);
+      });
     })['catch'](function(){
       LEDGER.say('Measured on this load. The 3D didn’t start on this device, so those figures are from our reference run.', false);
     });
