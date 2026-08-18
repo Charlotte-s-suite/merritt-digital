@@ -1,0 +1,37 @@
+/* Shared shell for the policy pages. Kept plain and readable on purpose: these are documents a
+   customer (or a payment processor) reads to find a fact quickly, not a place for the oak. */
+:root{
+  --field:#1A1C20; --field-deep:#131519; --line:#3A3D45;
+  --brass:#B08D4A; --brass-lt:#E3C57E;
+  --paper:#FAF7F0; --ink:#23262B; --ink-dim:#565B66; --rule:#D8D2C4;
+  --serif:"Iowan Old Style",Charter,Palatino,Georgia,serif;
+  --sans:system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.65;overflow-x:hidden}
+.wrap{max-width:760px;margin:0 auto;padding:0 24px}
+header.field{background:var(--field);color:var(--paper);padding:40px 0 34px;border-bottom:1px solid var(--brass)}
+header .kicker{font-size:13px;letter-spacing:.14em;padding-left:.14em;color:var(--brass-lt)}
+header h1{font-family:var(--serif);font-weight:600;font-size:clamp(26px,4.4vw,36px);margin-top:10px}
+header .sub{color:#C9CCD3;font-size:14px;margin-top:8px}
+main{padding:34px 0 10px}
+h2{font-family:var(--serif);font-weight:600;font-size:clamp(22px,3.2vw,27px);margin:30px 0 8px;
+   padding-bottom:5px;border-bottom:1px solid var(--rule)}
+h3{font-size:18px;font-weight:600;margin:20px 0 5px}
+p{margin:0 0 12px}
+ul{margin:0 0 14px 22px}
+li{margin-bottom:6px}
+strong{font-weight:600}
+a{color:#8A6D33}
+a:hover{color:var(--brass)}
+dl{margin:0 0 14px}
+dt{font-weight:600;margin-top:12px}
+dd{margin:2px 0 0 0;color:var(--ink-dim)}
+.updated{color:var(--ink-dim);font-size:14px;margin-bottom:6px}
+.box{border:1px solid var(--brass);background:#FBF6EA;padding:18px 22px;margin:18px 0;border-radius:4px}
+.contact{background:#fff;border:1px solid var(--rule);border-radius:5px;padding:20px 22px;margin:18px 0}
+.contact a{font-weight:600}
+nav.legal{margin-top:34px;padding-top:18px;border-top:1px solid var(--rule);font-size:14px}
+nav.legal a{margin-right:18px;display:inline-block;min-height:44px;line-height:44px}
+footer{border-top:1px solid var(--rule);margin-top:26px;padding:22px 0 38px;color:var(--ink-dim);font-size:13px}
+footer .biz{color:var(--ink);font-weight:600}
