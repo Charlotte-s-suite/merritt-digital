@@ -77,7 +77,7 @@
   :root{
     --field:#1A1C20; --field-deep:#131519;
     --brass:#B08D4A; --brass-lt:#E3C57E; --brass-dp:#8A6C34;
-    --paper:#FAF7F0; --on-field:#DCE0E6; --on-field-dim:#D6DAE0;
+    --paper:#FFFFFF; --on-field:#F4F6F9; --on-field-dim:#EAEDF1;
     --rule:rgba(176,141,74,.26);
     --display:"Caslon Display",Iowan Old Style,Charter,Palatino,Georgia,serif;
     --sans:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
@@ -98,20 +98,19 @@
   #oak{width:100%;height:100%;opacity:0;transition:opacity 1.1s var(--settle)}
   .stage.live #oak{opacity:1}
   /* the static silhouette IS the design until WebGL earns its place (§5.5) */
-  .poster,#frames{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;background:#14171b}
+  .poster,#frames{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
   #frames{opacity:0;transition:opacity .6s var(--settle)}
   #frames.live{opacity:1}
   /* the poster stays underneath: if the canvas never arrives, this is the design */
   .poster.done{opacity:1}
-  /* LEGIBILITY. The old background was sparse dark line art and a light vignette
-     was enough. A golden-hour photograph is busy and bright in exactly the band
-     the copy sits in, so this is a real scrim: a strong bottom-up gradient plus
-     an overall darkening, tuned so brass-on-ink type keeps its contrast without
-     the picture going muddy. Verified at 390/834/1280, not just desktop. */
-  .vignette{position:absolute;inset:0;
-    background:linear-gradient(180deg,rgba(15,17,20,.82) 0%,rgba(15,17,20,.55) 22%,rgba(15,17,20,.58) 55%,rgba(15,17,20,.88) 100%),
-               radial-gradient(78% 60% at 50% 45%,rgba(15,17,20,.18) 20%,rgba(15,17,20,.72) 100%)}
-  @media(min-width:900px){.vignette{background:linear-gradient(180deg,rgba(15,17,20,.72) 0%,rgba(15,17,20,.42) 24%,rgba(15,17,20,.48) 60%,rgba(15,17,20,.84) 100%),linear-gradient(90deg,rgba(15,17,20,.92) 0%,rgba(15,17,20,.80) 30%,rgba(15,17,20,.46) 50%,rgba(15,17,20,.12) 66%,transparent 76%)}}
+  /* THE DARKENING IS GONE. Schyler, 2026-08-19: "it's way too dark." The
+     vignette element and its CSS are REMOVED outright, not reduced — the film
+     runs at full brightness, full bleed, with nothing laid over it.
+
+     Legibility is therefore carried entirely by the TYPE: lifted tokens plus
+     the halo further down. If copy ever measures short again the answer is to
+     lift the type further or to report the number — never to reintroduce a
+     scrim under another name. */
   /* cursor flourish: an engraver's registration mark, pointer devices only */
   .reg{position:fixed;left:0;top:0;z-index:1;pointer-events:none;opacity:0;color:var(--brass);transition:opacity .5s var(--settle);will-change:transform}
   body.has-pointer .reg{opacity:.5}
@@ -135,6 +134,11 @@
      more scrim is what keeps the picture visible — measure with
      scratchpad/contrast2.cjs, which samples the composited page with the glyphs
      hidden. */
+  /* With the scrim removed, this halo is the ONLY thing keeping copy readable
+     over a bright photograph. It is local to the glyphs, so it costs the film
+     nothing — which is the whole point of taking the darkening off. */
+  h1,h2,h3,.thesis,.dek,.body,.studio,.cue,.note,.val,dt,.move p,.terms,.rate,.measured,.vista-line,.vista-sub{
+    text-shadow:0 1px 2px rgba(6,8,11,.95), 0 2px 10px rgba(6,8,11,.92), 0 6px 34px rgba(6,8,11,.82)}
   .wrap{width:100%;max-width:1120px;margin:0 auto;padding:0 var(--gut);position:relative;z-index:2}
   section{position:relative;z-index:2;padding:14vh 0;min-height:100vh;min-height:100svh;display:flex;align-items:center}
 
@@ -297,7 +301,6 @@
     <img id="poster" class="poster" src="assets/seq/half/001.webp" alt="" fetchpriority="high" decoding="async">
   </picture>
   <canvas id="frames"></canvas>
-  <div class="vignette"></div>
 </div>
 </div>
 

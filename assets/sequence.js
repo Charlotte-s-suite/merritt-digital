@@ -33,19 +33,22 @@
    Android. The browser can evict an <img> decode; it cannot evict a bitmap.
    ───────────────────────────────────────────────────────────────────────────── */
 
-/* Two tiers, and they differ ONLY in resolution — not in framing. Every tier is
-   the complete 16:9 frame with nothing cropped away, which is why there is no
-   art direction left to get wrong. The earlier build cropped per viewport to
-   fill the screen edge to edge and threw away 20% of the width on desktop and
-   about 74% on a phone; Schyler asked whether he was seeing the full frame, and
-   he was not. Now he is. Breakpoints must still match the <picture> media
-   queries in index.html. */
-const TIERS = [
-  { min: 900, dir: 'full', count: 241 },
-  { min: 0,   dir: 'half', count: 241 },
-];
+/* ONE sequence, every viewport: the complete 1280x720 frame, all 241 of them,
+   nothing cropped and nothing down-ressed. There are no tiers left, because
+   tiers only ever existed to serve a byte ceiling that has since been withdrawn
+   as never having been asked for. Two earlier mistakes are buried here and
+   worth not repeating: cropping per viewport threw away 20% of the width on
+   desktop and ~74% on a phone, and a second tier at 854x480 was down-ressing by
+   another name. Both are gone. */
+/* ── the only knobs ────────────────────────────────────────────────────────
+   Swapping in a different frame set is a two-line edit here and nothing else.
+   COUNT is read from this constant everywhere; nothing downstream hardcodes it,
+   so a 601-frame 60fps set drops in by changing the number and the folder. */
+const SEQ = { dir: 'full', count: 241, ext: 'webp' };
+const NARROW = { dir: 'half', count: 241, ext: 'webp', maxWidth: 899 };
 
-const src = (t, i) => `assets/seq/${t.dir}/${String(i + 1).padStart(3, '0')}.webp`;
+const pad = (n) => String(n).padStart(SEQ.count > 999 ? 4 : 3, '0');
+const src = (i) => `assets/seq/${tier.dir}/${pad(i + 1)}.${tier.ext}`;
 
 export function mountSequence(canvas, poster, opts = {}) {
   const ctx = canvas.getContext('2d', { alpha: false });
@@ -54,7 +57,8 @@ export function mountSequence(canvas, poster, opts = {}) {
   let tier = null, frames = [], loaded = 0, shown = -1;
   let W = 0, H = 0, dpr = 1, running = true, raf = 0, disposed = false;
 
-  const pick = () => TIERS.find((t) => innerWidth >= t.min) || TIERS[TIERS.length - 1];
+  const pick = () => (innerWidth <= NARROW.maxWidth ? NARROW : SEQ);
+
 
   /* Nearest ALREADY-LOADED frame. This is what lets a half-downloaded sequence
      be useful instead of broken: we never wait, we draw the closest thing we
@@ -72,15 +76,12 @@ export function mountSequence(canvas, poster, opts = {}) {
   function draw(i) {
     const f = nearest(i);
     if (!f) return false;
-    /* CONTAIN, not cover. Cover fills the screen but eats the composition, and
-       this is a single continuous shot whose whole point is what is in the
-       frame — the leaf, then the tree, then the lake, then the bridge. The page
-       field fills whatever is left over. */
+    /* COVER: fill the screen edge to edge, crop the overflow, no letterbox.
+       Schyler has now seen both and chose full-bleed over the whole
+       composition (2026-08-19). Cropping is the accepted cost. */
     const cw = canvas.width, ch = canvas.height;
-    const s = Math.min(cw / f.el.naturalWidth, ch / f.el.naturalHeight);
+    const s = Math.max(cw / f.el.naturalWidth, ch / f.el.naturalHeight);
     const w = f.el.naturalWidth * s, h = f.el.naturalHeight * s;
-    ctx.fillStyle = '#14171b';
-    ctx.fillRect(0, 0, cw, ch);
     ctx.drawImage(f.el, (cw - w) / 2, (ch - h) / 2, w, h);
     return true;
   }
@@ -131,7 +132,7 @@ export function mountSequence(canvas, poster, opts = {}) {
       };
       // a dropped frame is not an error worth surfacing: nearest() covers it
       el.onerror = () => { frames[i] = null; res(); };
-      el.src = src(tier, i);
+      el.src = src(i);
     });
   }
 
