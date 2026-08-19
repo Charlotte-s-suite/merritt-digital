@@ -24,7 +24,8 @@ succession is written down and three of the five renderings never reached `main`
 
 | # | rendering | archived as | commit | reached main? |
 |---|---|---|---|---|
-| 1 | monochrome engraving | tag `oak-engraved-v1` | `3ab4fe0` | yes, via PR #1 |
+| 1 | monochrome engraving | `2026-08-18-monochrome-engraving` | `284c8f0` | yes, via PR #1 |
+| 1b | the spreading oak Schyler approved | `2026-08-18-approved-engraved-oak` | `d458fe9` | **no — tag-only** |
 | 2 | mighty engraved spread | `2026-08-18-engraved-spread-oak` | `1b050d1` | **no** |
 | 3 | photoreal: PBR, shadows, IBL, textures | `2026-08-18-photoreal-oak` | `bcf614e` | **no** |
 | 4 | luminous line | `2026-08-18-drawn-oak-webgl` | `5cbf11e0` | yes, via PR #4 |
@@ -39,6 +40,21 @@ Verified by marker check rather than by reading the label — the archived `oak.
 no Catmull-Rom centrelines, no spiral grain, no fissure forking; the botanical one is 905 lines and
 has all three. Left uncorrected, the archive would have claimed the lineage ended one rendering
 early and the most developed drawn oak would have gone unarchived entirely.
+
+**Correction, 2026-08-18, and the useful part of it.** Row 1 of that table originally read
+"tag `oak-engraved-v1` · `3ab4fe0` · reached main: yes". Two errors in one row, found by the console
+lead testing every ancestry claim with `git merge-base --is-ancestor`:
+
+* `3ab4fe0` is an **annotated tag object, not a commit**. It points at `d458fe9` — *"a mighty
+  ancient spreading oak, 15x the detail"* — which is the **spreading** oak Schyler approved, not
+  the monochrome engraving. Two different renderings had been collapsed into one row.
+* The monochrome engraving is at `284c8f0`, which **is** on `main` and was never at risk.
+
+So the genuinely unsafe artifact was the one nobody had named: the tag target sits on no branch and
+is reachable only through the tag, making it garbage-collectable the moment that tag goes. It is
+now row 1b, and archived. The lesson worth keeping is narrower than "check ancestry": a tag is not
+a commit, and a claim that merges two artifacts into one sentence will hide whichever of them is
+actually broken.
 
 **What reverses it.** Nothing. This is bookkeeping, not a design decision — which is the point of
 the rule.
