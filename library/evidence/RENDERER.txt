@@ -1,11 +1,11 @@
 lakeview frame sequence — canvas, no WebGL
-captured 2026-08-19T02:54:57.032Z
+captured 2026-08-19T03:18:50.009Z
 profile: CPU x4, slow 4G + slow 3G sanity
-390x844 width-law ok client=390 doc=390 frames=49 page=69kB film=1.2 MB
-834x1112 width-law ok client=834 doc=834 frames=61 page=69kB film=2.6 MB
-1280x900 width-law ok client=1280 doc=1280 frames=81 page=69kB film=4.0 MB
+390x844 width-law ok client=390 doc=390 frames=241 page=71kB film=14.7 MB
+834x1112 width-law ok client=834 doc=834 frames=241 page=71kB film=24.3 MB
+1280x900 width-law ok client=1280 doc=1280 frames=241 page=71kB film=43.5 MB
 no-JS: poster=true scrollable=true prices=true
-390 slow-4G LCP=760ms firstScrollable=692ms page=69kB
-834 slow-4G LCP=804ms firstScrollable=735ms page=69kB
-1280 slow-4G LCP=856ms firstScrollable=735ms page=69kB
-390 slow-3G LCP=1064ms firstScrollable=1999ms page=69kB
+390 slow-4G LCP=768ms firstScrollable=746ms page=71kB
+834 slow-4G LCP=892ms firstScrollable=829ms page=71kB
+1280 slow-4G LCP=940ms firstScrollable=1110ms page=71kB
+390 slow-3G LCP=1128ms firstScrollable=2392ms page=71kB

@@ -22,15 +22,19 @@
        needs no JavaScript, and the page is readable and scrollable before a
        single sequence frame exists.
      · nothing here starts loading until the page has loaded and gone idle.
-     · frames arrive in COARSE-TO-FINE passes (stride 8, then 4, 2, 1). After
-       the first pass the whole arc is scrubbable at low granularity; later
-       passes only refine it. Loading 1→N in order would instead leave the end
-       of the arc broken for the entire download.
+     · frames arrive in COARSE-TO-FINE passes (stride 16, then 8, 4, 2, 1).
+       After the first pass the whole arc is scrubbable at low granularity;
+       later passes only refine it. Loading 1→N in order would instead leave the
+       end of the arc broken for the entire download — which matters far more at
+       241 frames than it did at 81.
      · if the network dies mid-way the page stays correct — whatever arrived is
        used, and the poster covers the rest.
    Frames are held as <img>, deliberately not ImageBitmap: bitmaps pin decoded
-   RGBA (81 × 800×563 × 4B ≈ 146 MB) which is exactly how you kill a mid-tier
-   Android. The browser can evict an <img> decode; it cannot evict a bitmap.
+   RGBA, and at 241 × 1024×720 × 4B that is roughly 700 MB. The browser can
+   evict an <img> decode; it cannot evict a bitmap. This is the one hardware
+   concession that survives the "full resolution, don't worry about hardware"
+   ruling, because it is not a quality tradeoff — it costs nothing visually and
+   without it the tab is killed outright.
    ───────────────────────────────────────────────────────────────────────────── */
 
 /* Tiers are ART DIRECTION, not resolution switching: each is cropped to its
@@ -39,9 +43,9 @@
    <picture> media queries in index.html or the poster and the sequence would
    disagree with each other. */
 const TIERS = [
-  { min: 900, dir: '1280', count: 81 },
-  { min: 700, dir: '834',  count: 61 },
-  { min: 0,   dir: '390',  count: 49 },
+  { min: 900, dir: '1280', count: 241 },
+  { min: 700, dir: '834',  count: 241 },
+  { min: 0,   dir: '390',  count: 241 },
 ];
 
 const src = (t, i) => `assets/seq/${t.dir}/${String(i + 1).padStart(3, '0')}.webp`;
@@ -132,7 +136,7 @@ export function mountSequence(canvas, poster, opts = {}) {
   /* Coarse to fine, four at a time. Concurrency is capped because a phone on
      cellular does worse with 80 parallel requests than with a steady four. */
   async function stream() {
-    for (const stride of [8, 4, 2, 1]) {
+    for (const stride of [16, 8, 4, 2, 1]) {
       const want = [];
       for (let i = 0; i < tier.count; i += stride) if (!frames[i]) want.push(i);
       if (tier.count - 1 >= 0 && !frames[tier.count - 1]) want.push(tier.count - 1);

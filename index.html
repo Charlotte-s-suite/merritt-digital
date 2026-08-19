@@ -108,14 +108,47 @@
      the copy sits in, so this is a real scrim: a strong bottom-up gradient plus
      an overall darkening, tuned so brass-on-ink type keeps its contrast without
      the picture going muddy. Verified at 390/834/1280, not just desktop. */
+  /* LEGIBILITY, retuned 2026-08-19. The first pass darkened the whole frame to
+     guarantee contrast and drained the colour out of the footage, which is the
+     thing people are meant to look at. Now the scrim is LOCAL: a light overall
+     grade, a stronger band only at the very top and bottom where copy actually
+     sits, and text-shadow doing the rest. Verified at all three viewports. */
+  /* LEGIBILITY vs COLOUR, resolved 2026-08-19 by measurement rather than taste.
+     Dimming the whole frame killed the footage; leaving it bright measured 1.25:1
+     for body copy over sunlit water, which is unreadable. So the scrim is shaped
+     to WHERE THE COPY IS and nowhere else:
+       · wide screens read as an editorial split — copy left, picture right — so
+         the left column carries a strong gradient and the right half of the
+         photograph stays untouched and vivid.
+       · narrow screens have copy across the full width, so the plate sits behind
+         the reading column itself (.wrap) instead of over the whole picture,
+         which keeps the frame's edges bright.
+     Re-measure with scratchpad/contrast.cjs after any change here. */
   .vignette{position:absolute;inset:0;
-    background:linear-gradient(180deg,rgba(15,17,20,.82) 0%,rgba(15,17,20,.55) 22%,rgba(15,17,20,.58) 55%,rgba(15,17,20,.88) 100%),
-               radial-gradient(78% 60% at 50% 45%,rgba(15,17,20,.18) 20%,rgba(15,17,20,.72) 100%)}
-  @media(min-width:900px){.vignette{background:linear-gradient(180deg,rgba(15,17,20,.72) 0%,rgba(15,17,20,.42) 24%,rgba(15,17,20,.48) 60%,rgba(15,17,20,.84) 100%),linear-gradient(90deg,rgba(15,17,20,.92) 0%,rgba(15,17,20,.80) 30%,rgba(15,17,20,.46) 50%,rgba(15,17,20,.12) 66%,transparent 76%)}}
+    background:linear-gradient(180deg,rgba(15,17,20,.66) 0%,rgba(15,17,20,.18) 18%,rgba(15,17,20,.14) 64%,rgba(15,17,20,.74) 100%)}
+  @media(min-width:900px){.vignette{background:linear-gradient(180deg,rgba(15,17,20,.52) 0%,rgba(15,17,20,.10) 22%,rgba(15,17,20,.08) 66%,rgba(15,17,20,.62) 100%),linear-gradient(90deg,rgba(15,17,20,.96) 0%,rgba(15,17,20,.94) 40%,rgba(15,17,20,.86) 54%,rgba(15,17,20,.60) 66%,rgba(15,17,20,.20) 78%,transparent 88%)}}
+  /* the reading plate, narrow screens only */
+  @media(max-width:899px){
+    section > .wrap{position:relative}
+    /* inset 0 horizontally, NEVER negative: a -6vw bleed here widened the
+       document by exactly 6vw and broke the width law at 390 and 834. The
+       feathering comes from the gradient's own extent instead. */
+    section > .wrap::before{content:"";position:absolute;inset:-4vh 0;z-index:-1;pointer-events:none;
+      background:radial-gradient(150% 82% at 50% 50%,rgba(13,15,18,.92) 0%,rgba(13,15,18,.86) 46%,rgba(13,15,18,.52) 74%,rgba(13,15,18,.12) 92%,transparent 100%)}
+    section{isolation:isolate}
+  }
   /* cursor flourish: an engraver's registration mark, pointer devices only */
   .reg{position:fixed;left:0;top:0;z-index:1;pointer-events:none;opacity:0;color:var(--brass);transition:opacity .5s var(--settle);will-change:transform}
   body.has-pointer .reg{opacity:.5}
 
+  /* Copy sits over a photograph now, and the photograph is allowed to keep its
+     colour. So legibility is bought LOCALLY — a soft dark halo on the type
+     itself — rather than by dimming the whole frame. Costs nothing, reads at
+     every beat including the bright sunlit water, and leaves the footage alone. */
+  h1,h2,h3,.thesis,.dek,.body,.studio,.cue,.note,.val,dt,.move p,.terms,.rate,.measured{
+    text-shadow:0 1px 2px rgba(12,14,17,.55), 0 2px 18px rgba(12,14,17,.75)}
+  .ledger .note,.move p,.dek,.canopy .body{
+    text-shadow:0 1px 2px rgba(12,14,17,.72), 0 2px 14px rgba(12,14,17,.9)}
   .wrap{width:100%;max-width:1120px;margin:0 auto;padding:0 var(--gut);position:relative;z-index:2}
   section{position:relative;z-index:2;padding:14vh 0;min-height:100vh;min-height:100svh;display:flex;align-items:center}
 
@@ -311,7 +344,7 @@
       <dl class="ledger">
         <div class="row rise">
           <dt>Dimension</dt>
-          <dd class="val"><b id="m-frames">81</b> frames <span aria-hidden="true">&middot;</span> not a video</dd>
+          <dd class="val"><b id="m-frames">241</b> frames <span aria-hidden="true">&middot;</span> not a video</dd>
           <dd class="note">The film behind this page is a sequence of still frames, drawn to a canvas and indexed by how far you have scrolled. That is why it runs backwards the instant you scroll up, and why there is no audio to mute. It is cropped separately for phone, tablet and desktop so the lake stays in the middle of the picture on all three.</dd>
         </div>
         <div class="row rise">
