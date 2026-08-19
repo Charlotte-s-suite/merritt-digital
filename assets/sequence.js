@@ -33,15 +33,16 @@
    Android. The browser can evict an <img> decode; it cannot evict a bitmap.
    ───────────────────────────────────────────────────────────────────────────── */
 
-/* Tiers are ART DIRECTION, not resolution switching: each is cropped to its
-   viewport's aspect from the same 16:9 source, so the lake stays centred and
-   the bridge stays in frame at every width. The breakpoints MUST match the
-   <picture> media queries in index.html or the poster and the sequence would
-   disagree with each other. */
+/* Two tiers, and they differ ONLY in resolution — not in framing. Every tier is
+   the complete 16:9 frame with nothing cropped away, which is why there is no
+   art direction left to get wrong. The earlier build cropped per viewport to
+   fill the screen edge to edge and threw away 20% of the width on desktop and
+   about 74% on a phone; Schyler asked whether he was seeing the full frame, and
+   he was not. Now he is. Breakpoints must still match the <picture> media
+   queries in index.html. */
 const TIERS = [
-  { min: 900, dir: '1280', count: 81 },
-  { min: 700, dir: '834',  count: 61 },
-  { min: 0,   dir: '390',  count: 49 },
+  { min: 900, dir: 'full', count: 241 },
+  { min: 0,   dir: 'half', count: 241 },
 ];
 
 const src = (t, i) => `assets/seq/${t.dir}/${String(i + 1).padStart(3, '0')}.webp`;
@@ -71,10 +72,15 @@ export function mountSequence(canvas, poster, opts = {}) {
   function draw(i) {
     const f = nearest(i);
     if (!f) return false;
-    // cover: fill the canvas, crop the overflow, never letterbox or distort
+    /* CONTAIN, not cover. Cover fills the screen but eats the composition, and
+       this is a single continuous shot whose whole point is what is in the
+       frame — the leaf, then the tree, then the lake, then the bridge. The page
+       field fills whatever is left over. */
     const cw = canvas.width, ch = canvas.height;
-    const s = Math.max(cw / f.el.naturalWidth, ch / f.el.naturalHeight);
+    const s = Math.min(cw / f.el.naturalWidth, ch / f.el.naturalHeight);
     const w = f.el.naturalWidth * s, h = f.el.naturalHeight * s;
+    ctx.fillStyle = '#14171b';
+    ctx.fillRect(0, 0, cw, ch);
     ctx.drawImage(f.el, (cw - w) / 2, (ch - h) / 2, w, h);
     return true;
   }
