@@ -48,7 +48,10 @@ const SEQ = { dir: 'full', count: 241, ext: 'webp' };
 const NARROW = { dir: 'half', count: 241, ext: 'webp', maxWidth: 899 };
 
 const pad = (n) => String(n).padStart(SEQ.count > 999 ? 4 : 3, '0');
-const src = (i) => `assets/seq/${tier.dir}/${pad(i + 1)}.${tier.ext}`;
+/* `t` is passed in deliberately: this lives at module scope, and reading the
+   mountSequence-local `tier` from here is exactly the bug that shipped a black
+   canvas — it parses fine and throws only at runtime. */
+const src = (t, i) => `assets/seq/${t.dir}/${pad(i + 1)}.${t.ext}`;
 
 export function mountSequence(canvas, poster, opts = {}) {
   const ctx = canvas.getContext('2d', { alpha: false });
@@ -132,7 +135,7 @@ export function mountSequence(canvas, poster, opts = {}) {
       };
       // a dropped frame is not an error worth surfacing: nearest() covers it
       el.onerror = () => { frames[i] = null; res(); };
-      el.src = src(i);
+      el.src = src(tier, i);
     });
   }
 
