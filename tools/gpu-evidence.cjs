@@ -68,7 +68,6 @@ async function capture() {
       if (w === 1280) {
         report.ledger = await page.evaluate(() => ({
           triangles: document.getElementById('m-seg').textContent,
-          leaves: document.getElementById('m-leaf').textContent,
           draws: document.getElementById('m-draw').textContent,
           status: document.getElementById('measured-text').textContent,
         }));
