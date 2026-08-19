@@ -12,18 +12,17 @@
   and it comes off very pretentious. Just talk about who we are." The oak is atmosphere and
   proof-of-craft; it is not the subject and it is not narrated. If a future edit finds
   itself explaining the canopy, the leaves or the seed to a visitor, it has broken this law.
-  The one permitted mention is the three.js licence attribution in the colophon, which is a
-  legal obligation rather than copy.
-  OWN-WORLD: A mighty oak half-turned for autumn, standing on the shore of Lake Merritt at
-  golden hour and drawn ENTIRELY IN LIGHT LINES — no surfaces, no shading model, one primitive
-  from the root plate to the last twig, and the whole place behind it drawn the same way. The
-  sky is a field, not a backdrop: near-black indigo overhead down through violet and magenta to
-  the sun's band on the water. Colour is positional — roots in indigo, the bole through plum
-  into amber, the crown in gold, with an electric emerald in the leaves that have not turned and
-  a cold cyan on the lake as the only two accents. Because nothing is opaque, the root plate
-  reads THROUGH the ground like an x-ray. Libre Caslon Display for the things of value, Archivo
-  for apparatus. No textures, no purchased models, no image bytes at all — every line generated
-  from code and one fixed number.
+  The one permitted mention was the three.js licence attribution in the colophon; the drawn
+  oak is gone and so is that dependency, so the copy law now has no exception at all.
+  OWN-WORLD: One continuous aerial pull-back over Lake Merritt at golden hour, shot as film
+  and served as a scroll-indexed sequence of still frames on a canvas. It opens on a single oak
+  leaf with a bird on the limb behind it, rises through the canopy, clears the whole tree on the
+  shore, and keeps going until Lake Merritt, downtown Oakland and finally the bay with the Bay
+  Bridge are all in frame. Scrolling down zooms OUT, from one leaf to the whole city — the same
+  move the copy makes, from one small business to the place it belongs to, and it contains the
+  studio's namesake. The ratified brass-on-ink palette is unchanged and the footage sits under it
+  rather than against it: golden hour is already brass. Libre Caslon Display for the things of
+  value, Archivo for apparatus.
   STORY: The visitor reads who we are and what we refuse to do, finds the page auditing
   itself on the way down, reaches what it costs, and ends on the promise the whole business
   turns on — come back on merit, not obligation. The camera move underneath carries them
@@ -32,16 +31,18 @@
   thesis "We build it. You own it."; who we are in one paragraph; a rule and a scroll cue.
   The acorn, which is the primary navigation, is already at the lower right, filling as you
   descend.
-  FORM: Scroll-driven WebGL drawn entirely in luminous LINES — HDR colour into a half-float
-  target, bloomed, tone-mapped in one final pass. Schyler's direction, 2026-07-31: "back to just
-  lines, but with full color, tones and environment hues. Like a vivid tron dreamstate ...
-  cutting edge but not overly generated". The realism attempt it replaces is preserved at branch
-  oak-grown; the monochrome engraving before that at tag oak-engraved-v1.
+  FORM: A frame sequence drawn to a canvas and indexed by scroll — deliberately NOT a scrubbed
+  <video>. iOS Safari snaps currentTime seeks to keyframes, which is a platform property rather
+  than a device-speed one, and reversing on scroll-up is the worst case for seeking while being
+  free with indexed frames. Console lead ruling, 2026-08-18, Schyler-directed. The poster frame
+  is a plain image element in the markup, so it is the LCP element and survives with scripting off. The
+  five renderings of the drawn oak that preceded this are recorded in DRIFT.md.
   SCOPE: capability only, the site never names clients (Schyler ruling
   2026-07-29 via console lead; BRIEF.md job 1, DRIFT.md founding entry).
 
-  LAWS: single dependency-free page + vendored-local three.js (law 3 amendment, Signature
-  tier) · WebGL layers over a complete static page and never gates it (§5.5) · all motion
+  LAWS: single dependency-free page, now with NO runtime dependency at all (the vendored
+  three.js went with the drawn oak) · the film layers over a complete static page and never
+  gates it (§5.5) · all motion
   inside prefers-reduced-motion (§5.0) · every number from merritt-studio/pricing.json.
   Post-processing and blended geometry are departures from §5.5's mobile floor and are
   logged in DRIFT.md with the measurements that justify them.
@@ -97,11 +98,20 @@
   #oak{width:100%;height:100%;opacity:0;transition:opacity 1.1s var(--settle)}
   .stage.live #oak{opacity:1}
   /* the static silhouette IS the design until WebGL earns its place (§5.5) */
-  .static-oak{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(1500px,190vw);color:#6A5330;opacity:.42;transition:opacity .9s var(--settle)}
-  .stage.live .static-oak{opacity:0}
-  .vignette{position:absolute;inset:0;background:radial-gradient(78% 60% at 50% 45%,transparent 22%,rgba(19,21,25,.82) 100%)}
-  /* on wide screens the reading column gets its own quiet ground */
-  @media(min-width:900px){.vignette{background:radial-gradient(78% 60% at 50% 45%,transparent 22%,rgba(19,21,25,.82) 100%),linear-gradient(90deg,rgba(19,21,25,.88) 0%,rgba(19,21,25,.74) 30%,rgba(19,21,25,.40) 50%,rgba(19,21,25,.10) 64%,transparent 74%)}}
+  .poster,#frames{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+  #frames{opacity:0;transition:opacity .6s var(--settle)}
+  #frames.live{opacity:1}
+  /* the poster stays underneath: if the canvas never arrives, this is the design */
+  .poster.done{opacity:1}
+  /* LEGIBILITY. The old background was sparse dark line art and a light vignette
+     was enough. A golden-hour photograph is busy and bright in exactly the band
+     the copy sits in, so this is a real scrim: a strong bottom-up gradient plus
+     an overall darkening, tuned so brass-on-ink type keeps its contrast without
+     the picture going muddy. Verified at 390/834/1280, not just desktop. */
+  .vignette{position:absolute;inset:0;
+    background:linear-gradient(180deg,rgba(15,17,20,.82) 0%,rgba(15,17,20,.55) 22%,rgba(15,17,20,.58) 55%,rgba(15,17,20,.88) 100%),
+               radial-gradient(78% 60% at 50% 45%,rgba(15,17,20,.18) 20%,rgba(15,17,20,.72) 100%)}
+  @media(min-width:900px){.vignette{background:linear-gradient(180deg,rgba(15,17,20,.72) 0%,rgba(15,17,20,.42) 24%,rgba(15,17,20,.48) 60%,rgba(15,17,20,.84) 100%),linear-gradient(90deg,rgba(15,17,20,.92) 0%,rgba(15,17,20,.80) 30%,rgba(15,17,20,.46) 50%,rgba(15,17,20,.12) 66%,transparent 76%)}}
   /* cursor flourish: an engraver's registration mark, pointer devices only */
   .reg{position:fixed;left:0;top:0;z-index:1;pointer-events:none;opacity:0;color:var(--brass);transition:opacity .5s var(--settle);will-change:transform}
   body.has-pointer .reg{opacity:.5}
@@ -244,7 +254,7 @@
   /* ── motion: one authored descent; everything else is micro (§5.0) ── */
   @media (prefers-reduced-motion: reduce){
     html{scroll-behavior:auto}
-    #oak,.static-oak,.reg{transition:none}
+    #frames,.poster,.reg{transition:none}
   }
   @media (prefers-reduced-motion: no-preference){
     @supports (animation-timeline: view()){
@@ -257,31 +267,20 @@
 <body>
 
 <!-- The stage. Static silhouette first — it is the design, not a placeholder (§5.5). -->
+<!-- The poster is a real image element in the markup on purpose: it is the LCP element,
+     it needs no JavaScript, and with scripting off it simply stays. <picture> is
+     ART DIRECTION, not resolution switching — each tier is cropped to its
+     viewport's aspect from the same source, so the lake stays centred and the
+     bridge stays in frame. These media queries MUST match TIERS in sequence.js. -->
 <div class="stage" id="stage" aria-hidden="true">
-  <canvas id="oak"></canvas>
-  <svg class="static-oak" viewBox="0 0 900 620" aria-hidden="true">
-    <!-- The pre-WebGL state has to look like the same tree, so this is a filled
-         silhouette now rather than the line drawing that matched the engraving. -->
-    <g fill="currentColor">
-      <path d="M436 470h28l10-118q-24-6-48 0Z" opacity=".95"/>
-      <path d="M450 352q-52-10-96-52 40 34 96 40Zm0 0q54-10 100-56-42 38-100 44Zm0 26q-40-6-74-34 30 30 74 40Zm0 4q42-8 78-38-32 32-78 42Z" opacity=".9"/>
-      <g opacity=".55">
-        <ellipse cx="450" cy="212" rx="132" ry="86"/>
-        <ellipse cx="286" cy="268" rx="122" ry="76"/>
-        <ellipse cx="620" cy="262" rx="128" ry="80"/>
-        <ellipse cx="368" cy="176" rx="104" ry="68"/>
-        <ellipse cx="546" cy="170" rx="108" ry="70"/>
-        <ellipse cx="196" cy="322" rx="86" ry="52"/>
-        <ellipse cx="710" cy="316" rx="90" ry="54"/>
-      </g>
-      <g opacity=".8">
-        <path d="M444 470q-58 16-104 60 40-48 104-70Zm12 0q60 14 108 58-42-48-108-68Z"/>
-        <path d="M446 470q-16 40-20 92 0-56 26-92Zm10 0q20 38 26 88-4-54-30-88Z"/>
-        <path d="M430 474q-72 8-128 50 50-46 128-62Zm40 0q74 6 132 48-52-46-132-60Z"/>
-      </g>
-    </g>
-  </svg>
+  <picture>
+    <source media="(min-width:900px)" srcset="assets/seq/1280/001.webp">
+    <source media="(min-width:700px)" srcset="assets/seq/834/001.webp">
+    <img id="poster" class="poster" src="assets/seq/390/001.webp" alt="" fetchpriority="high" decoding="async">
+  </picture>
+  <canvas id="frames"></canvas>
   <div class="vignette"></div>
+</div>
 </div>
 
 <svg class="reg" id="reg" width="66" height="66" viewBox="0 0 66 66" fill="none" stroke="currentColor" aria-hidden="true">
@@ -312,13 +311,13 @@
       <dl class="ledger">
         <div class="row rise">
           <dt>Dimension</dt>
-          <dd class="val"><b id="m-seg">169,298</b> lines drawn <span aria-hidden="true">&middot;</span> <b id="m-draw">16</b> passes</dd>
-          <dd class="note">Every one of those lines is generated in your browser from a few hundred lines of code. There is no model file and no image of any kind in this page &mdash; not a texture, not a photograph, not a stock asset &mdash; which is why all of it costs almost nothing to send you. The same discipline is why the sites we build for clients load on a bad connection in a car park.</dd>
+          <dd class="val"><b id="m-frames">81</b> frames <span aria-hidden="true">&middot;</span> not a video</dd>
+          <dd class="note">The film behind this page is a sequence of still frames, drawn to a canvas and indexed by how far you have scrolled. That is why it runs backwards the instant you scroll up, and why there is no audio to mute. It is cropped separately for phone, tablet and desktop so the lake stays in the middle of the picture on all three.</dd>
         </div>
         <div class="row rise">
           <dt>Frame</dt>
-          <dd class="val"><b id="m-fps">60</b> fps</dd>
-          <dd class="note">This page renders only when something actually changes. Stop scrolling and it stops working entirely, which is why it doesn&rsquo;t flatten a battery or bog down an older phone.</dd>
+          <dd class="val">Readable before <b>any</b> of it loads</dd>
+          <dd class="note">The first still is part of the page itself, so you can read every word and reach the prices before a single frame of the film has arrived. The rest streams in behind it, coarse first and then sharper. If your connection gives out halfway, the page is still right &mdash; you simply keep the still.</dd>
         </div>
         <div class="row rise">
           <dt>Letterform</dt>
@@ -327,8 +326,8 @@
         </div>
         <div class="row rise">
           <dt>Weight</dt>
-          <dd class="val"><b id="m-kb">&mdash;</b> kB</dd>
-          <dd class="note">Everything it took to give you this page: markup, styles, three typefaces, the 3D engine and the artwork. No tracker, no tag manager, no cookie banner, no font CDN. None of the weight that usually arrives before the content does.</dd>
+          <dd class="val"><b id="m-kb">&mdash;</b> kB page <span aria-hidden="true">&middot;</span> <b id="m-img">&mdash;</b> the film</dd>
+          <dd class="note">The first figure is everything needed to read this page: markup, styles, three typefaces and the script. The second is the film, which arrives afterwards and never blocks you. No tracker, no tag manager, no cookie banner, no font CDN &mdash; none of the weight that usually arrives before the content does.</dd>
         </div>
         <div class="row rise">
           <dt>Floor</dt>
@@ -422,8 +421,8 @@
         <p>Libre Caslon Display and Archivo, both under the SIL Open Font License, subset and served from this domain.</p>
       </div>
       <div>
-        <h3>The artwork</h3>
-        <p>Generated in your browser from a fixed seed and rendered with <a href="vendor/three-LICENSE.txt">three.js</a> (MIT), vendored locally. Never a CDN.</p>
+        <h3>The film</h3>
+        <p>Shot over Lake Merritt at golden hour. Served as still frames from this domain, cropped for your screen. No video player, no audio, no third party.</p>
       </div>
     </div>
     <p class="sitelinks"><a href="pricing.html">Pricing</a> &middot;
@@ -434,7 +433,7 @@
     <p class="provenance">Merritt Digital &middot; Alameda, California, USA &middot;
        <a href="mailto:info@merritt-digital.com">info@merritt-digital.com</a><br>
        Custom website design and development &middot; all prices in US dollars (USD) &middot;
-       the artwork is generated, not photographed &middot; prices ratified 2026-08-17 from the studio&rsquo;s single source</p>
+       the film was shot over Lake Merritt &middot; prices ratified 2026-08-17 from the studio&rsquo;s single source</p>
   </div>
 </footer>
 
@@ -548,16 +547,24 @@ var LEDGER = (function(){
   var kb = document.getElementById('m-kb'),
       txt = document.getElementById('measured-text'),
       box = document.getElementById('measured');
+  var img = document.getElementById('m-img');
+  /* Two figures, because one would be a lie by omission. The page and the film
+     have completely different urgency: the page must arrive now, the film may
+     take its time. Reporting a single ~5 MB total would hide the fact that none
+     of it stands between you and the words. encodedBodySize is used rather than
+     transferSize so a returning visitor gets the truth rather than zero. */
   function weight(){
     try{
-      var total = 0, seen = false, list = performance.getEntriesByType('resource');
+      var page = 0, film = 0, list = performance.getEntriesByType('resource');
       var nav = performance.getEntriesByType('navigation')[0];
-      if (nav && nav.transferSize){ total += nav.transferSize; seen = true; }
+      if (nav) page += nav.encodedBodySize || nav.transferSize || 0;
       for (var i = 0; i < list.length; i++){
-        if (list[i].transferSize){ total += list[i].transferSize; seen = true; }
+        var e = list[i], n = e.encodedBodySize || e.transferSize || 0;
+        if (/\/assets\/seq\//.test(e.name)) film += n; else page += n;
       }
-      if (seen && total > 0) kb.textContent = Math.round(total / 1024).toLocaleString();
-    }catch(e){ /* the seeded em-dash stands */ }
+      if (page > 51200) kb.textContent = Math.round(page / 1024).toLocaleString();
+      if (film > 0) img.textContent = (film / 1048576).toFixed(1) + ' MB';
+    }catch(e){ /* the seeded em-dashes stand */ }
   }
   return {
     weight: weight,
@@ -585,45 +592,23 @@ var LEDGER = (function(){
 
   function start(){
     LEDGER.weight();
-    var refused = probe();
-    if (refused){
-      LEDGER.say('Measured on this load. The 3D figures are from our reference run: ' + refused + '.', false);
-      return;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches){
+      LEDGER.say('Measured on this load. Motion is reduced on your device, so the film is held on one frame.', true);
     }
-    import('./assets/oak.js').then(function(mod){
-      var oak = mod.mountOak(document.getElementById('oak'));
-      /* the tree is cut across frames; it appears when it is whole */
-      return oak.ready.then(function(info){
+    import('./assets/sequence.js').then(function(mod){
+      var seq = mod.mountSequence(document.getElementById('frames'),
+                                  document.getElementById('poster'));
       stage.classList.add('live');
-      document.getElementById('m-seg').textContent = info.segments.toLocaleString();
-
-      /* real frame timing, sampled while the visitor is actually here */
-      var frames = 0, t0 = 0, best = 0, windows = 0;
-      function sample(now){
-        if (!t0) t0 = now;
-        frames++;
-        if (now - t0 >= 900){
-          var fps = Math.round(frames * 1000 / (now - t0));
-          if (fps > best){
-            best = Math.min(fps, 120);
-            document.getElementById('m-fps').textContent = best;
-          }
-          frames = 0; t0 = now; windows++;
-        }
-        // four windows is enough to see this device's ceiling. Then stop entirely:
-        // a page that boasts about idling at zero cost must actually do it.
-        if (windows < 4) requestAnimationFrame(sample);
-      }
-      requestAnimationFrame(sample);
-
+      /* Report what is true once the sequence has had a moment to stream. The
+         page is already complete at this point; none of this gates anything. */
       setTimeout(function(){
-        document.getElementById('m-draw').textContent = oak.drawCalls() || 1;
+        document.getElementById('m-frames').textContent = seq.frames;
         LEDGER.weight();
         LEDGER.say('Measured on your device, on this load.', true);
-      }, 1200);
-      });
+      }, 1600);
     })['catch'](function(){
-      LEDGER.say('Measured on this load. The 3D didn’t start on this device, so those figures are from our reference run.', false);
+      /* The poster is still on screen and the page is still correct. */
+      LEDGER.say('Measured on this load. The film didn\u2019t start on this device, so the still stands in for it.', false);
     });
   }
 

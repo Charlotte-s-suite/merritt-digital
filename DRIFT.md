@@ -5,7 +5,54 @@ departure from `kit/DESIGN-STANDARD.md` get a dated entry here with honest reaso
 condition that would reverse them. Silence is the failure mode this file exists to prevent: a
 departure nobody wrote down becomes a house style by accident._
 
+
 ---
+
+## 2026-08-18 · The tree stops being drawn: a filmed scroll sequence replaces the WebGL oak
+
+**The ruling.** Schyler-directed, relayed by the console lead: replace the 3D oak scroll sequence
+with new Lake Merritt footage, as a scroll-tracked frame sequence.
+
+**The succession, which is the reason this file exists.** This is the FIFTH rendering of the tree
+and the first that is not drawn:
+
+1. `oak-engraved-v1` — monochrome line engraving, brass on ink
+2. `oak-scroll` — a mightier engraved oak, 15x the detail
+3. `oak-grown` — photoreal attempt: skinned bark, PBR, shadows, IBL, procedural textures
+4. `oak-luminous-pr` (PR #4) → `oak-refined` — luminous line, then tonal brass-on-ink etching,
+   then botanical curved grain
+5. **this** — no drawn tree at all. A real oak, filmed, over the real lake the studio is named
+   for.
+
+Every one of the first four grew the same tree from seed 20260728 and differed only in how it was
+drawn. That lineage ends here, and with it the whole apparatus that served it.
+
+**What was deleted.** `assets/oak.js`, `lines.js`, `palette.js`, `scene.js`, `jays.js`, and the
+vendored `three.js` with its licence. `tools/gpu-evidence.cjs` went too: it existed to assert a
+discrete-GPU WebGL renderer, and there is no WebGL left for it to protect.
+
+**This retires two standing law departures rather than adding any.** The 2026-07-28 vendored-three.js
+entry and the 2026-07-31 post-processing/blended-geometry entry both described costs incurred by
+the drawn oak. Both are now moot: the page has **no runtime dependency at all**, and the critical
+path fell from about 817 kB to **69 kB**. The imagery that replaces it is heavier in total but
+arrives after the page is readable, which is a different and better kind of cost.
+
+**The one technique ruling, which is not negotiable.** Frames on a canvas, never a scrubbed
+`<video>`. iOS Safari snaps `currentTime` seeks to keyframes — a property of every iPhone and iPad
+in the audience, not of slow hardware — scroll-scrubbing video is unreliable across browsers
+generally, and the required reverse-on-scroll-up is the worst case for seeking while being free
+with indexed frames.
+
+**The performance target is the AUDIENCE, corrected mid-build.** The brief first named Schyler's
+A12X iPad; the console lead withdrew that as an internal-tooling constraint wrongly applied to a
+public product. The real target is an Oakland small-business owner on a mid-tier phone on cellular,
+first visit, no patience — which is a STRICTER bar, since a 2018 iPad Pro is a flagship. Measured
+under CPU x4 and emulated slow 4G, with a slow-3G sanity pass; numbers in the PR.
+
+**What reverses it.** Confirmation that the footage is not ours to publish (see the PR — publication
+is gated on that), or a measured failure on the audience profile. The frame sequences are generated
+from a source deliberately staged OUTSIDE this repo and never committed.
+
 
 ## 2026-07-31 · The form changes: luminous LINE work, and the post-processing that requires
 
