@@ -8,6 +8,43 @@ departure nobody wrote down becomes a house style by accident._
 
 ---
 
+## 2026-08-18 · The retired renderings are archived, and that is a standing rule now
+
+**The rule.** Schyler, effective 2026-08-18, relayed by the console lead: **stop asking which
+background or copy to keep.** A retired rendering or a superseded copy block is an ARTIFACT, not a
+decision needing a ruling. Archive it and carry on. If it is unclear whether something is worth
+keeping, KEEP IT — the folder is cheap and a lost rendering is unrecoverable in practice.
+
+**Where.** `merritt-studio/archive/merritt-digital/<YYYY-MM-DD>-<slug>/`, one folder per alternate,
+holding whatever makes it runnable or readable on its own — the assets plus the page that drove
+them, never a diff. Convention and restore notes live in that folder's README.
+
+**The full drawn lineage is now archived**, which matters because this file is the only place the
+succession is written down and three of the five renderings never reached `main` at all:
+
+| # | rendering | archived as | commit | reached main? |
+|---|---|---|---|---|
+| 1 | monochrome engraving | tag `oak-engraved-v1` | `3ab4fe0` | yes, via PR #1 |
+| 2 | mighty engraved spread | `2026-08-18-engraved-spread-oak` | `1b050d1` | **no** |
+| 3 | photoreal: PBR, shadows, IBL, textures | `2026-08-18-photoreal-oak` | `bcf614e` | **no** |
+| 4 | luminous line | `2026-08-18-drawn-oak-webgl` | `5cbf11e0` | yes, via PR #4 |
+| 5 | tonal etching + botanical grain | `2026-08-18-refined-botanical-oak` | `d16af15` | **no** |
+
+Plus `2026-08-18-copy-artwork-narration` — the copy that narrated the artwork, retired by PR #6.
+
+**One correction made while doing this.** The archive README described the fourth rendering as
+"tonal botanical line work". It is not: that folder holds the *luminous* rendering, and the
+botanical pass was developed on `oak-refined` and never merged, so it was never at that commit.
+Verified by marker check rather than by reading the label — the archived `oak.js` is 695 lines with
+no Catmull-Rom centrelines, no spiral grain, no fissure forking; the botanical one is 905 lines and
+has all three. Left uncorrected, the archive would have claimed the lineage ended one rendering
+early and the most developed drawn oak would have gone unarchived entirely.
+
+**What reverses it.** Nothing. This is bookkeeping, not a design decision — which is the point of
+the rule.
+
+---
+
 ## 2026-08-18 · The tree stops being drawn: a filmed scroll sequence replaces the WebGL oak
 
 **The ruling.** Schyler-directed, relayed by the console lead: replace the 3D oak scroll sequence
