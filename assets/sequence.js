@@ -44,8 +44,15 @@
 
 /* ── the only knobs ──────────────────────────────────────────────────────────
    Swapping in a different frame set is this constant and nothing else.
-   Filename padding widens automatically past 999 frames. */
-const SEQ = { dir: 'v2', count: 598, ext: 'webp' };
+   Filename padding widens automatically past 999 frames.
+
+   `step` is the chase ceiling in frames per painted tick. The v3 set is the
+   60fps source motion-interpolated to 120fps (1,193 frames), and Schyler chose
+   step 2 for it (2026-08-19, "3rd option"): the same catch-up time as the
+   598-frame set with visibly finer motion. At step 2 every frame still lands
+   in a blend — odd frames show at partial weight rather than never — which he
+   accepted as honouring the intent of never-skip, by explicit choice. */
+const SEQ = { dir: 'v3', count: 1193, ext: 'webp', step: 2 };
 
 const pad = (n) => String(n).padStart(SEQ.count > 999 ? 4 : 3, '0');
 const src = (i) => `assets/seq/${SEQ.dir}/${pad(i + 1)}.${SEQ.ext}`;
@@ -142,7 +149,7 @@ export function mountSequence(canvas, poster, opts = {}) {
        arrival is an easing, not a wall. */
     const d = target - cur;
     if (Math.abs(d) < 0.04) cur = target;
-    else cur += Math.sign(d) * Math.min(Math.abs(d) * 0.22, 1);
+    else cur += Math.sign(d) * Math.min(Math.abs(d) * 0.22, SEQ.step);
 
     const i0 = Math.max(0, Math.floor(cur));
     const i1 = Math.min(SEQ.count - 1, i0 + 1);
@@ -159,7 +166,7 @@ export function mountSequence(canvas, poster, opts = {}) {
     // feed the ring ahead of travel, keep both neighbours for a reversal
     const dir = d >= 0 ? 1 : -1;
     ensureBitmap(i0); ensureBitmap(i1);
-    for (let k = 1; k <= 10; k++) ensureBitmap(i0 + dir * k);
+    for (let k = 1; k <= 14; k++) ensureBitmap(i0 + dir * k);
     ensureBitmap(i0 - dir); ensureBitmap(i0 - dir * 2);
     trimRing();
 

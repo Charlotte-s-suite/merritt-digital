@@ -296,7 +296,7 @@
      serves every viewport — the full frame, nothing cropped at encode. -->
 <div class="stage" id="stage" aria-hidden="true">
   <picture>
-    <img id="poster" class="poster" src="assets/seq/v2/001.webp" alt="" fetchpriority="high" decoding="async">
+    <img id="poster" class="poster" src="assets/seq/v3/0001.webp" alt="" fetchpriority="high" decoding="async">
   </picture>
   <canvas id="frames"></canvas>
 </div>
@@ -330,7 +330,7 @@
       <dl class="ledger">
         <div class="row rise">
           <dt>Dimension</dt>
-          <dd class="val"><b id="m-frames">81</b> frames <span aria-hidden="true">&middot;</span> not a video</dd>
+          <dd class="val"><b id="m-frames">1,193</b> frames <span aria-hidden="true">&middot;</span> not a video</dd>
           <dd class="note">The film behind this page is a sequence of still frames, drawn to a canvas and indexed by how far you have scrolled. That is why it runs backwards the instant you scroll up, and why there is no audio to mute. You see the whole frame, uncropped, at every screen size.</dd>
         </div>
         <div class="row rise">
@@ -441,7 +441,7 @@
       </div>
       <div>
         <h3>The film</h3>
-        <p>Shot over Lake Merritt at golden hour. Served as still frames from this domain, cropped for your screen. No video player, no audio, no third party.</p>
+        <p>Shot over Lake Merritt at golden hour and motion-smoothed to 120 frames a second. Served as still frames from this domain. No video player, no audio, no third party.</p>
       </div>
     </div>
     <p class="sitelinks"><a href="pricing.html">Pricing</a> &middot;
@@ -621,7 +621,7 @@ var LEDGER = (function(){
       /* Report what is true once the sequence has had a moment to stream. The
          page is already complete at this point; none of this gates anything. */
       setTimeout(function(){
-        document.getElementById('m-frames').textContent = seq.frames;
+        document.getElementById('m-frames').textContent = seq.frames.toLocaleString();
         LEDGER.weight();
         LEDGER.say('Measured on your device, on this load.', true);
       }, 1600);
