@@ -44,8 +44,7 @@
    Swapping in a different frame set is a two-line edit here and nothing else.
    COUNT is read from this constant everywhere; nothing downstream hardcodes it,
    so a 601-frame 60fps set drops in by changing the number and the folder. */
-const SEQ = { dir: 'full', count: 241, ext: 'webp' };
-const NARROW = { dir: 'half', count: 241, ext: 'webp', maxWidth: 899 };
+const SEQ = { dir: 'v2', count: 598, ext: 'webp' };
 
 const pad = (n) => String(n).padStart(SEQ.count > 999 ? 4 : 3, '0');
 /* `t` is passed in deliberately: this lives at module scope, and reading the
@@ -60,7 +59,10 @@ export function mountSequence(canvas, poster, opts = {}) {
   let tier = null, frames = [], loaded = 0, shown = -1;
   let W = 0, H = 0, dpr = 1, running = true, raf = 0, disposed = false;
 
-  const pick = () => (innerWidth <= NARROW.maxWidth ? NARROW : SEQ);
+  /* ONE set, every viewport, at the source's native 1620x1080 — no downscaled
+     tier, because a downscaled tier IS downscaling. It is sized to fill the
+     screen at draw time instead (cover), which costs no resolution anywhere. */
+  const pick = () => SEQ;
 
 
   /* Nearest ALREADY-LOADED frame. This is what lets a half-downloaded sequence
