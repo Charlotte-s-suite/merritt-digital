@@ -56,7 +56,7 @@ export function mountSequence(canvas, poster, opts = {}) {
   const ctx = canvas.getContext('2d', { alpha: false });
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  let tier = null, frames = [], loaded = 0, shown = -1;
+  let tier = null, frames = [], loaded = 0;
   let W = 0, H = 0, dpr = 1, running = true, raf = 0, disposed = false;
 
   /* ONE set, every viewport, at the source's native 1620x1080 — no downscaled
@@ -78,17 +78,15 @@ export function mountSequence(canvas, poster, opts = {}) {
     return null;
   }
 
-  function draw(i) {
-    const f = nearest(i);
-    if (!f) return false;
+  function paint(f, alpha) {
     /* COVER: fill the screen edge to edge, crop the overflow, no letterbox.
-       Schyler has now seen both and chose full-bleed over the whole
-       composition (2026-08-19). Cropping is the accepted cost. */
+       Schyler has now seen both and chose full-bleed (2026-08-19). */
     const cw = canvas.width, ch = canvas.height;
-    const s = Math.max(cw / f.el.naturalWidth, ch / f.el.naturalHeight);
-    const w = f.el.naturalWidth * s, h = f.el.naturalHeight * s;
+    const sc = Math.max(cw / f.el.naturalWidth, ch / f.el.naturalHeight);
+    const w = f.el.naturalWidth * sc, h = f.el.naturalHeight * sc;
+    ctx.globalAlpha = alpha;
     ctx.drawImage(f.el, (cw - w) / 2, (ch - h) / 2, w, h);
-    return true;
+    ctx.globalAlpha = 1;
   }
 
   function progress() {
@@ -96,19 +94,47 @@ export function mountSequence(canvas, poster, opts = {}) {
     return max > 0 ? Math.min(1, Math.max(0, scrollY / max)) : 0;
   }
 
-  function frameAt(p) {
-    return Math.min(tier.count - 1, Math.max(0, Math.round(p * (tier.count - 1))));
-  }
+  /* ── the seamless scrub ─────────────────────────────────────────────────
+     Two things make this read as continuous motion rather than steps:
 
-  /* Render on CHANGE only. There is no easing between frames because frames are
-     discrete — easing would just render the same picture repeatedly. Stop
-     scrolling and this does nothing at all, which is the claim the ledger makes. */
+     1. EASING. A wheel click jumps ~100px of scroll at once; mapped directly
+        that snaps several frames in a single paint. Instead a continuous frame
+        position `cur` glides toward the scroll target across rAF frames, so a
+        wheel click becomes a short dolly move through the intermediate frames.
+        (The drawn oak always did this; dropping it in the rewrite was my
+        mistake and most of the perceived chop.)
+
+     2. BLENDING. `cur` is fractional, and the two adjacent frames are drawn
+        weighted by the fraction. At a 60fps source the neighbours are nearly
+        identical, so the blend is indistinguishable from true in-between
+        motion — the scrub is continuous, not quantised to 598 steps.
+
+     Still renders only while something is changing: at rest `cur === target`
+     and nothing is scheduled, so the idle cost stays zero. */
+  let cur = -1, paints = 0;
   function tick() {
     raf = 0;
     if (!running || disposed) return;
     resize();
-    const i = still ? 0 : frameAt(progress());
-    if (i !== shown) { if (draw(i)) shown = i; }
+    const target = still ? 0 : progress() * (tier.count - 1);
+    if (cur < 0) cur = target;             // first paint: land, don't glide from 0
+    let d = target - cur;
+    /* Cap the catch-up: an anchor jump or End key moves hundreds of frames, and
+       gliding through all of them plays seconds of fast-forward. Teleport to
+       within 45 frames and glide the rest — bounded to ~three quarters of a
+       second worst case, still seamless for every ordinary scroll. */
+    if (Math.abs(d) > 45) { cur = target - Math.sign(d) * 45; d = target - cur; }
+    cur = Math.abs(d) < 0.04 ? target : cur + d * 0.22;
+    const i0 = Math.max(0, Math.floor(cur));
+    const i1 = Math.min(tier.count - 1, i0 + 1);
+    const frac = cur - i0;
+    const f0 = nearest(i0), f1 = i1 !== i0 ? nearest(i1) : null;
+    if (f0) {
+      paint(f0, 1);
+      if (f1 && f1 !== f0 && frac > 0.01) paint(f1, frac);
+      paints++;
+    }
+    if (cur !== target) schedule();        // keep gliding; settle and stop
   }
   const schedule = () => { if (!raf && running && !disposed) raf = requestAnimationFrame(tick); };
 
@@ -119,7 +145,7 @@ export function mountSequence(canvas, poster, opts = {}) {
     W = w; H = h; dpr = d;
     canvas.width = Math.max(1, Math.floor(w * d));
     canvas.height = Math.max(1, Math.floor(h * d));
-    shown = -1;                       // the backing store was cleared
+    cur = -1;                          // the backing store was cleared; repaint in place
     return true;
   }
 
@@ -132,7 +158,7 @@ export function mountSequence(canvas, poster, opts = {}) {
     return new Promise((res) => {
       el.onload = () => {
         rec.ok = true; loaded++;
-        if (shown < 0 || Math.abs(i - shown) < 3) { shown = -1; schedule(); }
+        if (cur < 0 || Math.abs(i - cur) < 3) schedule();   // sharper neighbour arrived
         res();
       };
       // a dropped frame is not an error worth surfacing: nearest() covers it
@@ -171,7 +197,7 @@ export function mountSequence(canvas, poster, opts = {}) {
   const onScroll = () => schedule();
   const onResize = () => {
     const t = pick();
-    if (t !== tier) { tier = t; frames = []; loaded = 0; shown = -1; if (!still) stream(); }
+    if (t !== tier) { tier = t; frames = []; loaded = 0; cur = -1; if (!still) stream(); }
     schedule();
   };
   const onVis = () => {
@@ -193,6 +219,7 @@ export function mountSequence(canvas, poster, opts = {}) {
     get loaded() { return loaded; },
     get tier() { return tier ? tier.dir : null; },
     get still() { return still; },
+    get renders() { return paints; },   // for idle-cost proof: constant at rest
     dispose() {
       disposed = true; running = false;
       if (raf) cancelAnimationFrame(raf);
