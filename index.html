@@ -292,10 +292,8 @@
 
 <!-- The stage. Static silhouette first — it is the design, not a placeholder (§5.5). -->
 <!-- The poster is a real image element in the markup on purpose: it is the LCP element,
-     it needs no JavaScript, and with scripting off it simply stays. <picture> is
-     ART DIRECTION, not resolution switching — each tier is cropped to its
-     viewport's aspect from the same source, so the lake stays centred and the
-     bridge stays in frame. These media queries MUST match TIERS in sequence.js. -->
+     it needs no JavaScript, and with scripting off it simply stays. One source
+     serves every viewport — the full frame, nothing cropped at encode. -->
 <div class="stage" id="stage" aria-hidden="true">
   <picture>
     <img id="poster" class="poster" src="assets/seq/v2/001.webp" alt="" fetchpriority="high" decoding="async">
@@ -617,7 +615,7 @@ var LEDGER = (function(){
       LEDGER.say('Measured on this load. Motion is reduced on your device, so the film is held on one frame.', true);
     }
     import('./assets/sequence.js').then(function(mod){
-      var seq = mod.mountSequence(document.getElementById('frames'),
+      var seq = window.__seq = mod.mountSequence(document.getElementById('frames'),
                                   document.getElementById('poster'));
       stage.classList.add('live');
       /* Report what is true once the sequence has had a moment to stream. The
