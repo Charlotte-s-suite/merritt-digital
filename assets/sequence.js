@@ -118,13 +118,18 @@ export function mountSequence(canvas, poster, opts = {}) {
     resize();
     const target = still ? 0 : progress() * (tier.count - 1);
     if (cur < 0) cur = target;             // first paint: land, don't glide from 0
-    let d = target - cur;
-    /* Cap the catch-up: an anchor jump or End key moves hundreds of frames, and
-       gliding through all of them plays seconds of fast-forward. Teleport to
-       within 45 frames and glide the rest — bounded to ~three quarters of a
-       second worst case, still seamless for every ordinary scroll. */
-    if (Math.abs(d) > 45) { cur = target - Math.sign(d) * 45; d = target - cur; }
-    cur = Math.abs(d) < 0.04 ? target : cur + d * 0.22;
+    /* VELOCITY-CAPPED CHASE (Schyler, 2026-08-19): never skip a frame. The old
+       proportional ease closed 22% of the gap per tick, so a hard flick painted
+       positions 10-30 frames apart — visible skipping. Now the film may advance
+       AT MOST ONE frame per painted tick: every frame is played, in order, at
+       the display's own rate, and the scroll target simply waits for the film
+       to catch up. The proportional term takes over inside the last ~4 frames
+       so arrival is an easing, not a wall. A full-page jump therefore plays
+       through honestly (~10s for the whole film at 60Hz, half that on a 120Hz
+       display) — that is the ruling, chosen over teleporting. */
+    const d = target - cur;
+    if (Math.abs(d) < 0.04) cur = target;
+    else cur += Math.sign(d) * Math.min(Math.abs(d) * 0.22, 1);
     const i0 = Math.max(0, Math.floor(cur));
     const i1 = Math.min(tier.count - 1, i0 + 1);
     const frac = cur - i0;
@@ -135,6 +140,17 @@ export function mountSequence(canvas, poster, opts = {}) {
       paints++;
     }
     if (cur !== target) schedule();        // keep gliding; settle and stop
+
+    /* Pre-decode ahead of the glide. 598 frames of 1620x1080 is ~4 GB decoded,
+       so the browser evicts; a scrub back onto an evicted frame forces a
+       synchronous re-decode inside drawImage — a 20-50 ms hitch that reads as
+       stutter and never shows in a screenshot. decode() is async and warms the
+       cache without blocking the paint. */
+    const dir = d >= 0 ? 1 : -1;
+    for (let k = 1; k <= 4; k++) {
+      const f = frames[i0 + dir * k];
+      if (f && f.ok && !f.warm) { f.warm = true; f.el.decode().catch(() => {}).finally(() => { f.warm = false; }); }
+    }
   }
   const schedule = () => { if (!raf && running && !disposed) raf = requestAnimationFrame(tick); };
 
