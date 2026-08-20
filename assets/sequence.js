@@ -46,13 +46,13 @@
    Swapping in a different frame set is this constant and nothing else.
    Filename padding widens automatically past 999 frames.
 
-   `step` is the chase ceiling in frames per painted tick. The v3 set is the
-   60fps source motion-interpolated to 120fps (1,193 frames), and Schyler chose
-   step 2 for it (2026-08-19, "3rd option"): the same catch-up time as the
-   598-frame set with visibly finer motion. At step 2 every frame still lands
-   in a blend — odd frames show at partial weight rather than never — which he
-   accepted as honouring the intent of never-skip, by explicit choice. */
-const SEQ = { dir: 'v3', count: 1193, ext: 'webp', step: 2 };
+   `maxRate` is the chase ceiling in FRAMES PER SECOND — a rate, not a
+   per-tick step, so it means the same thing on a 60Hz desktop and a 120Hz
+   iPad. Schyler set 180 (2026-08-19): the film catches up at most 1.5x its
+   own 120fps speed. Per-tick advance is maxRate x elapsed time, with the
+   elapsed clamped so a dropped tick advances a bounded amount rather than
+   teleporting. */
+const SEQ = { dir: 'v4', count: 1193, ext: 'webp', maxRate: 180 };
 
 const pad = (n) => String(n).padStart(SEQ.count > 999 ? 4 : 3, '0');
 const src = (i) => `assets/seq/${SEQ.dir}/${pad(i + 1)}.${SEQ.ext}`;
@@ -137,10 +137,14 @@ export function mountSequence(canvas, poster, opts = {}) {
     return max > 0 ? Math.min(1, Math.max(0, scrollY / max)) : 0;
   }
 
-  function tick() {
+  let lastTs = 0;
+  function tick(ts) {
     raf = 0;
     if (!running || disposed) return;
     resize();
+    // elapsed time since the previous tick, clamped: a stall must not teleport
+    const dt = Math.min(Math.max(((ts || performance.now()) - lastTs) / 1000, 0.001), 0.04);
+    lastTs = ts || performance.now();
     const target = still ? 0 : progress() * (SEQ.count - 1);
     if (cur < 0) cur = target;               // first paint lands, never glides from 0
 
@@ -149,7 +153,7 @@ export function mountSequence(canvas, poster, opts = {}) {
        arrival is an easing, not a wall. */
     const d = target - cur;
     if (Math.abs(d) < 0.04) cur = target;
-    else cur += Math.sign(d) * Math.min(Math.abs(d) * 0.22, SEQ.step);
+    else cur += Math.sign(d) * Math.min(Math.abs(d) * 0.22, SEQ.maxRate * dt);
 
     const i0 = Math.max(0, Math.floor(cur));
     const i1 = Math.min(SEQ.count - 1, i0 + 1);
